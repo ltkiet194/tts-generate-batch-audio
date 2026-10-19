@@ -20,6 +20,8 @@ Response WAV
 
 Server tự tìm `ref_audio`, `ref_text`, ngôn ngữ và tham số sinh giọng. Client không gửi đường dẫn audio hoặc `ref_text`.
 
+Để thử API bằng giao diện trình duyệt, mở `http://127.0.0.1:8011/`. UI này có thể tải danh sách mã gợi ý, nhập mã tùy ý, tạo, nghe và tải WAV. Đây là công cụ test; client game vẫn chỉ cần gọi `POST /api/tts`.
+
 ## 1. Khởi động server
 
 Mở PowerShell tại thư mục `tts`:
@@ -272,6 +274,22 @@ Client mới nên dùng `character`. Server vẫn chấp nhận tên trường c
   "char": "thanh_hu_dao_truong"
 }
 ```
+
+## Tab thiết kế giọng trong Web UI
+
+Mở `http://127.0.0.1:8011/` và chuyển sang tab **Thiết kế giọng**. Chọn thuộc tính giọng, nhập câu mẫu sẽ được tổng hợp, rồi tạo preview để nghe. Câu mẫu này sẽ được lưu nguyên văn làm `ref_text` cho WAV sinh ra.
+
+Trong danh sách chỉ hiện **alias**, không hiện các char chính đã tồn tại. Chọn một alias làm char chính; có thể đánh dấu thêm alias phụ. Khi nhấn **Lưu thành nhân vật**, server sẽ tạo `audio/<alias-chính>.wav`, thêm object nhân vật với alias chính làm khóa vào `characters.json`, và chuyển các alias phụ được chọn sang nhân vật mới. Các alias đã chọn được gỡ khỏi nhân vật sở hữu cũ. Sau đó cấu hình được nạp lại mà không tải lại model.
+
+Các char chính hiện có không thể chọn hoặc ghi đè. Nếu alias đã bị thay đổi trong lúc mở UI, thao tác lưu bị từ chối và cần tải lại danh sách. Preview chưa lưu nằm trong `output/voice_design_previews` và được giới hạn số lượng.
+
+WAV Voice Design sau khi lưu được dùng làm audio tham chiếu cho TTS nhân vật. Giọng clone có thể khác preview đôi chút; nên nghe thử lại bằng tab **Thử giọng** sau khi lưu.
+
+## Tab quản lý alias
+
+Tab **Quản lý alias** cho phép chọn char nguồn, đánh dấu một hoặc nhiều alias bằng checkbox (có nút chọn/bỏ chọn tất cả), rồi chọn char đích. Nhấn **Chuyển alias và lưu JSON** để cập nhật `characters.json`; server xác thực toàn bộ danh sách và nạp cấu hình mới nguyên tử, không tải lại model. Nếu một alias không hợp lệ thì cả nhóm không được lưu. Char chính không bị đổi, chỉ quyền sở hữu alias thay đổi. Char đích phải đang được bật.
+
+Các endpoint giao diện sử dụng là `GET /api/characters/manage` và `POST /api/characters/aliases/move` với JSON gồm `source_char`, `aliases` (mảng), `target_char`. Endpoint quản lý này dành cho giao diện cục bộ, không cần gọi từ client game.
 
 ## 10. Cache
 

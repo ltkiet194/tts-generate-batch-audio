@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import json
+import os
+import re
+import shutil
+import tempfile
 import threading
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
+
+import soundfile as sf
 
 
 class CharacterConfigError(ValueError):
@@ -188,3 +194,257 @@ class CharacterManager:
         with self._lock:
             snapshot = tuple(self._characters.values())
         return [character.public_dict() for character in snapshot if character.enabled]
+
+    def list_voice_design_aliases(self) -> list[dict[str, str]]:
+        """Return selectable aliases, never canonical character IDs."""
+        with self._lock:
+            result = [
+                {"alias": alias, "char": character.char, "name": character.name}
+                for alias, character in self._aliases.items()
+                if character.enabled
+            ]
+        return sorted(result, key=lambda item: item["alias"])
+
+    def list_management(self) -> list[dict[str, Any]]:
+        """Return only fields needed by the local alias-management UI."""
+        with self._lock:
+            snapshot = tuple(self._characters.values())
+        return [
+            {"char": item.char, "name": item.name, "enabled": item.enabled, "aliases": list(item.aliases)}
+            for item in snapshot
+        ]
+
+    def move_aliases(
+        self,
+        *,
+        aliases: list[str],
+        source_char: str,
+        target_char: str,
+        required_default_id: str,
+    ) -> Character:
+        """Move a batch of aliases and atomically persist the configuration."""
+        aliases = [item.strip() for item in aliases]
+        source_char, target_char = source_char.strip(), target_char.strip()
+        if not aliases or any(not item for item in aliases) or not source_char or not target_char:
+            raise CharacterConfigError("Pháº£i chá»n alias, char nguá»“n vÃ  char Ä‘Ã­ch.")
+        if len(set(aliases)) != len(aliases):
+            raise CharacterConfigError("Danh sÃ¡ch alias cÃ³ mÃ£ trÃ¹ng láº·p.")
+        if source_char == target_char:
+            raise CharacterConfigError("Char nguá»“n vÃ  Ä‘Ã­ch pháº£i khÃ¡c nhau.")
+
+        with self._lock:
+            source = self._characters.get(source_char)
+            target = self._characters.get(target_char)
+            if source is None:
+                raise CharacterConfigError(f"KhÃ´ng tÃ¬m tháº¥y char nguá»“n '{source_char}'.")
+            if target is None:
+                raise CharacterConfigError(f"KhÃ´ng tÃ¬m tháº¥y char Ä‘Ã­ch '{target_char}'.")
+            if not target.enabled:
+                raise CharacterConfigError(f"Char Ä‘Ã­ch '{target_char}' Ä‘ang bá»‹ táº¯t.")
+            for alias in aliases:
+                if alias in self._characters:
+                    raise CharacterConfigError(f"'{alias}' lÃ  char chÃ­nh, khÃ´ng thá»ƒ chuyá»ƒn nhÆ° alias.")
+                owner = self._aliases.get(alias)
+                if owner is None or owner.char != source_char:
+                    raise CharacterConfigError(f"Alias '{alias}' khÃ´ng thuá»™c char nguá»“n '{source_char}'.")
+
+            try:
+                data = json.loads(self._config_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CharacterConfigError(f"KhÃ´ng Ä‘á»c Ä‘Æ°á»£c characters.json: {exc}") from exc
+            raw_characters = data.get("characters") if isinstance(data, dict) else None
+            if not isinstance(raw_characters, dict):
+                raise CharacterConfigError("TrÆ°á»ng gá»‘c 'characters' pháº£i lÃ  má»™t object JSON.")
+            source_entry = raw_characters.get(source_char)
+            target_entry = raw_characters.get(target_char)
+            if not isinstance(source_entry, dict) or not isinstance(target_entry, dict):
+                raise CharacterConfigError("Cáº¥u hÃ¬nh char nguá»“n/Ä‘Ã­ch khÃ´ng há»£p lá»‡.")
+
+            source_aliases = list(source_entry.get("aliases", []))
+            target_aliases = list(target_entry.get("aliases", []))
+            missing = [alias for alias in aliases if alias not in source_aliases]
+            if missing:
+                raise CharacterConfigError(
+                    f"characters.json Ä‘Ã£ thay Ä‘á»•i; alias khÃ´ng cÃ²n thuá»™c '{source_char}': {', '.join(missing)}. HÃ£y táº£i láº¡i trang."
+                )
+            conflicts = [alias for alias in aliases if alias in target_aliases]
+            if conflicts:
+                raise CharacterConfigError(f"Alias Ä‘Ã£ cÃ³ trong char Ä‘Ã­ch: {', '.join(conflicts)}.")
+            source_entry["aliases"] = [value for value in source_aliases if value not in set(aliases)]
+            target_entry["aliases"] = [*target_aliases, *aliases]
+            if not source_entry["aliases"]:
+                source_entry.pop("aliases")
+
+            fd, staged_name = tempfile.mkstemp(
+                prefix=f".{self._config_path.name}-", suffix=".tmp", dir=self._config_path.parent
+            )
+            os.close(fd)
+            staged = Path(staged_name)
+            original = self._config_path.read_bytes()
+            replaced = False
+            try:
+                staged.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                candidate = CharacterManager(staged, self._base_dir)
+                candidate.load(required_default_id=required_default_id)
+                os.replace(staged, self._config_path)
+                replaced = True
+                self.load(required_default_id=required_default_id)
+            except Exception:
+                if replaced:
+                    restore_fd, restore_name = tempfile.mkstemp(
+                        prefix=f".{self._config_path.name}-restore-", suffix=".tmp", dir=self._config_path.parent
+                    )
+                    os.close(restore_fd)
+                    restore = Path(restore_name)
+                    try:
+                        restore.write_bytes(original)
+                        os.replace(restore, self._config_path)
+                        self.load(required_default_id=required_default_id)
+                    finally:
+                        restore.unlink(missing_ok=True)
+                raise
+            finally:
+                staged.unlink(missing_ok=True)
+            return self._characters[target_char]
+
+    def promote_aliases_to_character(
+        self,
+        *,
+        primary_alias: str,
+        secondary_aliases: list[str],
+        name: str,
+        audio_source: Path,
+        ref_text: str,
+        language: str,
+        required_default_id: str,
+    ) -> Character:
+        """Create a new character from an existing alias and reassign selected aliases.
+
+        The WAV and JSON are prepared and validated before the JSON snapshot is
+        switched. Canonical IDs can never be promoted or overwritten.
+        """
+        primary_alias = primary_alias.strip()
+        name = name.strip()
+        ref_text = ref_text.strip()
+        language = language.strip()
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,127}", primary_alias):
+            raise CharacterConfigError("Mã alias chính chỉ được gồm chữ thường, số, '_' và '-'.")
+        if not name or not ref_text or not language:
+            raise CharacterConfigError("Tên, ref_text và language không được để trống.")
+        if not audio_source.is_file():
+            raise CharacterConfigError("Không tìm thấy audio preview để lưu.")
+        try:
+            audio_info = sf.info(audio_source)
+        except Exception as exc:
+            raise CharacterConfigError(f"Audio preview không đọc được: {exc}") from exc
+        if audio_info.frames <= 0 or audio_info.samplerate <= 0:
+            raise CharacterConfigError("Audio preview WAV rỗng hoặc không hợp lệ.")
+
+        secondary = [item.strip() for item in secondary_aliases]
+        if len(set(secondary)) != len(secondary):
+            raise CharacterConfigError("Danh sách alias phụ có mã trùng nhau.")
+        selected = [primary_alias, *secondary]
+        if primary_alias in secondary:
+            raise CharacterConfigError("Alias chính không được lặp trong danh sách alias phụ.")
+
+        # The lock covers both owner verification and file replacement so two
+        # simultaneous saves cannot claim or remove the same aliases.
+        with self._lock:
+            if primary_alias in self._characters:
+                raise CharacterConfigError(
+                    f"'{primary_alias}' đã là char chính; char chính hiện có không thể ghi đè."
+                )
+            owners: dict[str, Character] = {}
+            for alias in selected:
+                owner = self._aliases.get(alias)
+                if owner is None:
+                    raise CharacterConfigError(f"'{alias}' không còn là alias có thể chuyển.")
+                if not owner.enabled:
+                    raise CharacterConfigError(f"Nhân vật sở hữu alias '{alias}' đang bị tắt.")
+                owners[alias] = owner
+
+            try:
+                data = json.loads(self._config_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CharacterConfigError(f"Không đọc được characters.json: {exc}") from exc
+            raw_characters = data.get("characters") if isinstance(data, dict) else None
+            if not isinstance(raw_characters, dict):
+                raise CharacterConfigError("Trường gốc 'characters' phải là một object JSON.")
+
+            for owner_id in {owner.char for owner in owners.values()}:
+                raw_entry = raw_characters.get(owner_id)
+                if not isinstance(raw_entry, dict):
+                    raise CharacterConfigError(f"characters.{owner_id} không hợp lệ.")
+                old_aliases = raw_entry.get("aliases", [])
+                raw_entry["aliases"] = [alias for alias in old_aliases if alias not in selected]
+                if not raw_entry["aliases"]:
+                    raw_entry.pop("aliases")
+
+            audio_dir = self._base_dir / "audio"
+            audio_dir.mkdir(parents=True, exist_ok=True)
+            target_audio = audio_dir / f"{primary_alias}.wav"
+            if target_audio.exists():
+                raise CharacterConfigError(f"File audio đã tồn tại, không ghi đè: {target_audio.name}")
+            relative_audio = target_audio.relative_to(self._base_dir).as_posix()
+            raw_characters[primary_alias] = {
+                "name": name,
+                "ref_audio": relative_audio,
+                "ref_text": ref_text,
+                "language": language,
+                "enabled": True,
+                "parameters": {},
+            }
+            if secondary:
+                raw_characters[primary_alias]["aliases"] = secondary
+
+            audio_fd, staged_audio_name = tempfile.mkstemp(
+                prefix=f".{primary_alias}-", suffix=".wav", dir=audio_dir
+            )
+            os.close(audio_fd)
+            staged_audio = Path(staged_audio_name)
+            json_fd, staged_json_name = tempfile.mkstemp(
+                prefix=f".{self._config_path.name}-", suffix=".tmp", dir=self._config_path.parent
+            )
+            os.close(json_fd)
+            staged_json = Path(staged_json_name)
+            audio_installed = False
+            json_installed = False
+            original_json = self._config_path.read_bytes()
+            try:
+                shutil.copyfile(audio_source, staged_audio)
+                staged_json.write_text(
+                    json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                os.replace(staged_audio, target_audio)
+                audio_installed = True
+
+                candidate = CharacterManager(staged_json, self._base_dir)
+                candidate.load(required_default_id=required_default_id)
+                os.replace(staged_json, self._config_path)
+                json_installed = True
+                self.load(required_default_id=required_default_id)
+            except Exception:
+                if json_installed:
+                    restore_fd, restore_name = tempfile.mkstemp(
+                        prefix=f".{self._config_path.name}-restore-",
+                        suffix=".tmp",
+                        dir=self._config_path.parent,
+                    )
+                    os.close(restore_fd)
+                    restore_path = Path(restore_name)
+                    try:
+                        restore_path.write_bytes(original_json)
+                        os.replace(restore_path, self._config_path)
+                        self.load(required_default_id=required_default_id)
+                    finally:
+                        restore_path.unlink(missing_ok=True)
+                if audio_installed:
+                    target_audio.unlink(missing_ok=True)
+                raise
+            finally:
+                staged_audio.unlink(missing_ok=True)
+                staged_json.unlink(missing_ok=True)
+
+            saved = self._characters[primary_alias]
+            return saved

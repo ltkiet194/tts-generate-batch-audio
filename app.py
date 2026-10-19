@@ -3,19 +3,24 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
+import tempfile
+import threading
 from typing import Annotated
+from uuid import UUID, uuid4
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from starlette.background import BackgroundTask
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+import soundfile as sf
 
 from cache import AudioCache
 from character_manager import (
@@ -46,6 +51,9 @@ audio_cache = AudioCache(
 )
 # A single worker is both the inference queue and the GPU concurrency limit.
 inference_queue = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omnivoice")
+voice_design_preview_dir = settings.output_dir / "voice_design_previews"
+voice_design_previews: dict[str, "VoiceDesignPreview"] = {}
+voice_design_preview_lock = threading.RLock()
 
 
 class TTSRequest(BaseModel):
@@ -70,9 +78,88 @@ class TTSRequest(BaseModel):
         return value
 
 
+class VoiceDesignRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: Annotated[str, Field(min_length=1, max_length=settings.max_text_length)]
+    instruct: Annotated[str, Field(min_length=1, max_length=1000)]
+    language: Annotated[str, Field(min_length=1, max_length=64)] = "Vietnamese"
+
+    @field_validator("text", "instruct", "language")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("không được để trống")
+        return value
+
+
+class VoiceDesignSaveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    preview_id: UUID
+    primary_alias: Annotated[str, Field(min_length=1, max_length=128)]
+    aliases: Annotated[list[str], Field(max_length=256)] = Field(default_factory=list)
+    name: Annotated[str, Field(min_length=1, max_length=160)]
+
+    @field_validator("primary_alias", "name")
+    @classmethod
+    def strip_nonempty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("không được để trống")
+        return value
+
+    @field_validator("aliases")
+    @classmethod
+    def normalize_aliases(cls, values: list[str]) -> list[str]:
+        normalized = [value.strip() for value in values]
+        if any(not value for value in normalized):
+            raise ValueError("alias không được rỗng")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("danh sách alias bị trùng")
+        return normalized
+
+
+class AliasMoveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    aliases: Annotated[list[str], Field(min_length=1, max_length=1000)]
+    source_char: Annotated[str, Field(min_length=1, max_length=128)]
+    target_char: Annotated[str, Field(min_length=1, max_length=128)]
+
+    @field_validator("source_char", "target_char")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng")
+        return value
+
+    @field_validator("aliases")
+    @classmethod
+    def normalize_aliases(cls, values: list[str]) -> list[str]:
+        normalized = [value.strip() for value in values]
+        if any(not value for value in normalized):
+            raise ValueError("alias khÃ´ng Ä‘Æ°á»£c rá»—ng")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("danh sÃ¡ch alias bá»‹ trÃ¹ng")
+        return normalized
+
+
+@dataclass(frozen=True, slots=True)
+class VoiceDesignPreview:
+    path: Path
+    text: str
+    instruct: str
+    language: str
+    created_at: float
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings.output_dir.mkdir(parents=True, exist_ok=True)
+    voice_design_preview_dir.mkdir(parents=True, exist_ok=True)
     count = characters.load(required_default_id=settings.default_character)
     logger.info("Loaded %d character configurations", count)
     await run_in_threadpool(engine.load)
@@ -90,6 +177,17 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def test_ui() -> HTMLResponse:
+    ui_path = settings.base_dir / "ui" / "index.html"
+    try:
+        html = ui_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        logger.exception("Could not read local TTS test UI")
+        raise HTTPException(status_code=500, detail="Không đọc được giao diện test.") from exc
+    return HTMLResponse(html)
 
 
 @app.exception_handler(RequestValidationError)
@@ -111,6 +209,45 @@ def list_characters() -> dict[str, object]:
     return {"characters": characters.list_public()}
 
 
+@app.get("/api/characters/manage")
+def list_characters_for_management() -> dict[str, object]:
+    return {"characters": characters.list_management()}
+
+
+@app.post("/api/characters/aliases/move")
+def move_character_alias(request: AliasMoveRequest) -> dict[str, object]:
+    try:
+        target = characters.move_aliases(
+            aliases=request.aliases,
+            source_char=request.source_char,
+            target_char=request.target_char,
+            required_default_id=settings.default_character,
+        )
+    except CharacterConfigError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    logger.info(
+        "Moved aliases=%d source=%s target=%s",
+        len(request.aliases),
+        request.source_char,
+        request.target_char,
+    )
+    return {
+        "status": "ok",
+        "aliases": request.aliases,
+        "moved_count": len(request.aliases),
+        "source_char": request.source_char,
+        "target_char": target.char,
+        "target_name": target.name,
+        "target_aliases": list(target.aliases),
+    }
+
+
+@app.get("/api/voice-design/aliases")
+def list_voice_design_aliases() -> dict[str, object]:
+    """List aliases eligible for promotion; canonical IDs are omitted."""
+    return {"aliases": characters.list_voice_design_aliases()}
+
+
 @app.post("/api/characters/reload")
 def reload_characters() -> dict[str, object]:
     try:
@@ -119,6 +256,117 @@ def reload_characters() -> dict[str, object]:
         # The previous valid snapshot remains active.
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {"status": "ok", "count": count}
+
+
+def _generate_voice_design_queued(
+    text: str,
+    instruct: str,
+    language: str,
+    preview_id: str,
+) -> Path:
+    started = time.perf_counter()
+    audio = engine.generate_voice_design(text, instruct, language)
+    target = voice_design_preview_dir / f"{preview_id}.wav"
+    fd, temp_name = tempfile.mkstemp(prefix=f".{preview_id}-", suffix=".wav", dir=voice_design_preview_dir)
+    os.close(fd)
+    temp_path = Path(temp_name)
+    try:
+        sf.write(temp_path, audio, engine.output_sample_rate, format="WAV", subtype="PCM_16")
+        os.replace(temp_path, target)
+    finally:
+        temp_path.unlink(missing_ok=True)
+    logger.info("Voice design preview generated elapsed=%.3fs", time.perf_counter() - started)
+    return target
+
+
+@app.post("/api/voice-design/generate")
+def generate_voice_design(request: VoiceDesignRequest) -> dict[str, object]:
+    if not engine.loaded:
+        raise HTTPException(status_code=503, detail="Model TTS chưa sẵn sàng.")
+
+    preview_id = uuid4().hex
+    future = inference_queue.submit(
+        _generate_voice_design_queued,
+        request.text,
+        request.instruct,
+        request.language,
+        preview_id,
+    )
+    try:
+        path = future.result(timeout=settings.request_timeout_seconds)
+    except FutureTimeoutError as exc:
+        future.cancel()
+        logger.warning("Voice design timeout id=%s", preview_id)
+        raise HTTPException(status_code=503, detail="Thiết kế giọng quá thời gian chờ hoặc hàng đợi đang bận.") from exc
+    except Exception as exc:
+        logger.exception("Voice design generation failed")
+        raise HTTPException(status_code=500, detail="Thiết kế giọng thất bại. Xem log server để biết chi tiết.") from exc
+
+    preview = VoiceDesignPreview(
+        path=path,
+        text=request.text,
+        instruct=request.instruct,
+        language=request.language,
+        created_at=time.time(),
+    )
+    with voice_design_preview_lock:
+        voice_design_previews[preview_id] = preview
+        # Keep a bounded set of unsaved previews in memory and on disk.
+        while len(voice_design_previews) > 40:
+            oldest_id = min(voice_design_previews, key=lambda key: voice_design_previews[key].created_at)
+            old = voice_design_previews.pop(oldest_id)
+            old.path.unlink(missing_ok=True)
+
+    return {
+        "preview_id": preview_id,
+        "audio_url": f"/api/voice-design/previews/{preview_id}",
+        "sample_rate": engine.output_sample_rate,
+        "text": request.text,
+        "instruct": request.instruct,
+    }
+
+
+@app.get("/api/voice-design/previews/{preview_id}", response_class=FileResponse)
+def get_voice_design_preview(preview_id: UUID) -> FileResponse:
+    key = preview_id.hex
+    with voice_design_preview_lock:
+        preview = voice_design_previews.get(key)
+    if preview is None or not preview.path.is_file():
+        raise HTTPException(status_code=404, detail="Không tìm thấy preview; hãy tạo giọng thử lại.")
+    return FileResponse(preview.path, media_type="audio/wav", filename=f"voice-design-{key[:12]}.wav")
+
+
+@app.post("/api/voice-design/save")
+def save_voice_design(request: VoiceDesignSaveRequest) -> dict[str, object]:
+    preview_id = request.preview_id.hex
+    with voice_design_preview_lock:
+        preview = voice_design_previews.get(preview_id)
+        if preview is None or not preview.path.is_file():
+            raise HTTPException(status_code=404, detail="Preview không còn tồn tại; hãy tạo giọng thử lại.")
+        try:
+            saved = characters.promote_aliases_to_character(
+                primary_alias=request.primary_alias,
+                secondary_aliases=request.aliases,
+                name=request.name,
+                audio_source=preview.path,
+                ref_text=preview.text,
+                language=preview.language,
+                required_default_id=settings.default_character,
+            )
+        except CharacterConfigError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        voice_design_previews.pop(preview_id, None)
+        preview.path.unlink(missing_ok=True)
+
+    logger.info("Saved designed voice char=%s moved_aliases=%d", saved.char, 1 + len(request.aliases))
+    return {
+        "status": "ok",
+        "character": saved.char,
+        "name": saved.name,
+        "aliases": list(saved.aliases),
+        "ref_audio": saved.ref_audio.relative_to(settings.base_dir).as_posix(),
+        "ref_text": saved.ref_text,
+    }
 
 
 def _synthesize_queued(text: str, character: object, key: str) -> tuple[Path, bool]:

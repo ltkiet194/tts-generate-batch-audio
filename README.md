@@ -44,6 +44,8 @@ Từ thư mục bất kỳ:
 
 Chỉ bind `127.0.0.1` để API không bị mở ra mạng LAN. Swagger UI: <http://127.0.0.1:8011/docs>.
 
+Giao diện Voice Lab: <http://127.0.0.1:8011/>. Tab **Thử giọng** tạo/nghe/tải TTS; tab **Thiết kế giọng** tạo preview từ mô tả, chọn alias rồi lưu thành nhân vật mới; tab **Quản lý alias** chuyển alias giữa các char và lưu `characters.json`. Xem [API_USAGE.md](API_USAGE.md) để biết quy trình chi tiết.
+
 Có thể ép thiết bị trước khi chạy:
 
 ```powershell

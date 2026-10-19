@@ -85,6 +85,26 @@ class TTSEngine:
         # Most consumer GPUs cannot safely run concurrent generations on one model.
         with self._inference_lock:
             result = self._model.generate(**kwargs)
+        return self._normalize_audio_result(result)
+
+    def generate_voice_design(
+        self,
+        text: str,
+        instruct: str,
+        language: str = "Vietnamese",
+    ) -> np.ndarray:
+        """Generate a speaker from descriptive attributes without reference audio."""
+        if self._model is None:
+            raise RuntimeError("Model TTS chưa được tải.")
+        with self._inference_lock:
+            result = self._model.generate(
+                text=text,
+                instruct=instruct,
+                language=language,
+            )
+        return self._normalize_audio_result(result)
+
+    def _normalize_audio_result(self, result: Any) -> np.ndarray:
         if not isinstance(result, (list, tuple)) or not result:
             raise RuntimeError("Model trả về kết quả audio không hợp lệ.")
         audio = np.asarray(result[0], dtype=np.float32).squeeze()
