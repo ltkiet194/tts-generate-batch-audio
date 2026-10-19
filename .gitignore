@@ -1,0 +1,11 @@
+__pycache__/
+.pytest_cache/
+.pytest_tmp/
+*.py[cod]
+.venv/
+cache/*.wav
+output/*.wav
+audio/*.wav
+!audio/.gitkeep
+!cache/.gitkeep
+!output/.gitkeep
