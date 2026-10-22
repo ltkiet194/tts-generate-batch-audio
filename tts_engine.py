@@ -81,6 +81,7 @@ class TTSEngine:
             language=character.language,
             ref_audio=str(character.ref_audio),
             ref_text=character.ref_text,
+            speed=character.speed,
         )
         # Most consumer GPUs cannot safely run concurrent generations on one model.
         with self._inference_lock:

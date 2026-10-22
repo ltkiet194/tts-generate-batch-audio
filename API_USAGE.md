@@ -39,6 +39,23 @@ http://127.0.0.1:8011
 
 Lần chạy đầu có thể mất vài phút để tải và khởi tạo model.
 
+## Bật/tắt cache WAV
+
+Cache đang bật mặc định. Cách thuận tiện là sao chép `.env.example` thành `.env` ngay cạnh `app.py`, rồi sửa:
+
+```dotenv
+TTS_CACHE_ENABLED=false
+```
+
+File `.env` được nạp tự động theo vị trí `config.py`, nên không phụ thuộc thư mục terminal. Biến môi trường của hệ điều hành nếu đã đặt sẽ được ưu tiên hơn `.env`. Cũng có thể cấu hình trực tiếp trong PowerShell trước khi khởi động:
+
+```powershell
+$env:TTS_CACHE_ENABLED = "false"  # Tắt cache; mỗi request sẽ tổng hợp lại
+python -m uvicorn app:app --host 127.0.0.1 --port 8011
+```
+
+Muốn bật lại, đặt `TTS_CACHE_ENABLED=true` trong `.env` hoặc dùng `$env:TTS_CACHE_ENABLED = "true"`. Chấp nhận `true/false`, `1/0`, `yes/no`, `on/off`. `/api/health` trả thêm trường `cache_enabled` để xác nhận cấu hình đang áp dụng. Khi tắt, WAV vẫn được tạo và trả về request hiện tại nhưng không được tái sử dụng ở request sau. Khởi động lại server sau khi đổi cấu hình.
+
 ## 2. API client cần dùng
 
 ```http
@@ -125,6 +142,7 @@ Server tìm giá trị `character` trong `characters.json`:
       "ref_text": "Bản chép lời chính xác của file audio tham chiếu.",
       "language": "Vietnamese",
       "enabled": true,
+      "speed": 1.0,
       "parameters": {}
     }
   }
@@ -132,6 +150,8 @@ Server tìm giá trị `character` trong `characters.json`:
 ```
 
 Với `character: "thanh_hu_dao_truong"`, server tự dùng `audio/thanh_hu_dao_truong.wav` và `ref_text` tương ứng.
+
+`speed` mặc định `1.0`, lớn hơn `1.0` đọc nhanh hơn và nhỏ hơn `1.0` đọc chậm hơn. Đặt trường này trên char chính; request bằng alias tự kế thừa cấu hình speed của char sở hữu. Tham khảo [CHARACTER_SPEED.md](CHARACTER_SPEED.md) để biết chi tiết.
 
 ## 4. Nhiều mã game dùng chung một giọng
 
@@ -284,6 +304,14 @@ Trong danh sách chỉ hiện **alias**, không hiện các char chính đã t�
 Các char chính hiện có không thể chọn hoặc ghi đè. Nếu alias đã bị thay đổi trong lúc mở UI, thao tác lưu bị từ chối và cần tải lại danh sách. Preview chưa lưu nằm trong `output/voice_design_previews` và được giới hạn số lượng.
 
 WAV Voice Design sau khi lưu được dùng làm audio tham chiếu cho TTS nhân vật. Giọng clone có thể khác preview đôi chút; nên nghe thử lại bằng tab **Thử giọng** sau khi lưu.
+
+## Tab tạo nhân vật từ audio
+
+Tab **Tạo nhân vật** tạo char chính mới từ audio WAV do bạn upload. Mã char được tự lấy từ tên file bỏ `.wav` (ví dụ `bo_vi.wav` → `bo_vi`); tên file cần theo dạng chữ thường, số, `_` hoặc `-`. Nhập tên hiển thị và transcript chính xác của audio (`ref_text`). Tốc độ không bắt buộc; để trống sẽ dùng `1.0`. Câu nghe thử đã được điền mặc định; nếu gửi trống, server vẫn tự dùng câu mặc định. Có thể chọn checkbox alias từ các char đang bật để chuyển sang char mới, nhưng danh sách alias được phép rỗng.
+
+Nhấn **Tạo preview nghe thử** để model tổng hợp câu thử bằng WAV và `ref_text` vừa cung cấp. Nghe preview, sau đó nhấn **Lưu nhân vật và alias**. WAV upload gốc được lưu thành `audio/<char>.wav`; preview không dùng làm audio tham chiếu. Nếu có alias được chọn, server gỡ chúng khỏi các char chủ cũ và đưa vào char mới. Cấu hình cùng audio được kiểm tra trước khi thay thế; char chính đã tồn tại sẽ không bị ghi đè. File upload giới hạn 50 MiB và phải là WAV hợp lệ.
+
+Endpoints nội bộ của tab gồm `POST /api/characters/create/preview` (multipart gồm `audio`, `ref_text`, `preview_text`, `speed`; server suy ra `char_id` từ tên file), `GET /api/characters/create/previews/{preview_id}` và `POST /api/characters/create/save` (gửi `preview_id`, `name`, `aliases`). Client game không cần gọi các endpoint này.
 
 ## Tab quản lý alias
 

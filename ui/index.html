@@ -129,6 +129,7 @@
     .tab-button[aria-selected="true"] { color: var(--lime-ink); background: var(--lime); }
     .design-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: 18px; align-items: start; }
     .manage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    .create-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: 18px; align-items: start; }
     .design-card { padding: 24px; }
     .design-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 13px; }
     .design-fields .field { margin-bottom: 16px; }
@@ -146,6 +147,7 @@
     .alias-list { max-height: 245px; overflow: auto; padding-right: 5px; }
     .alias-row { display: grid; grid-template-columns: 18px minmax(90px, 1fr) auto 18px; gap: 8px; align-items: center; padding: 8px 5px; border-bottom: 1px solid rgba(237,242,232,.06); }
     .manage-alias-row { grid-template-columns: 18px minmax(0, 1fr); cursor: pointer; margin: 0; }
+    .create-alias-row { grid-template-columns: 18px minmax(90px, 1fr) minmax(100px, auto); cursor: pointer; margin: 0; }
     .alias-row:last-child { border-bottom: 0; }
     .alias-row input { width: 16px; height: 16px; accent-color: var(--lime); }
     .alias-key { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
@@ -165,6 +167,7 @@
       .workspace { grid-template-columns: 1fr; }
       .design-grid { grid-template-columns: 1fr; }
       .manage-grid { grid-template-columns: 1fr; }
+      .create-grid { grid-template-columns: 1fr; }
       .design-fields { grid-template-columns: 1fr 1fr; }
       .result-card { position: static; }
       .form-card, .result-card { padding: 20px; }
@@ -196,6 +199,7 @@
         <button class="tab-button" id="testTab" type="button" role="tab" aria-selected="true" aria-controls="testPanel">Thử giọng</button>
         <button class="tab-button" id="designTab" type="button" role="tab" aria-selected="false" aria-controls="designPanel">Thiết kế giọng</button>
         <button class="tab-button" id="manageTab" type="button" role="tab" aria-selected="false" aria-controls="managePanel">Quản lý alias</button>
+        <button class="tab-button" id="createTab" type="button" role="tab" aria-selected="false" aria-controls="createPanel">Tạo nhân vật</button>
       </nav>
 
       <section class="workspace" id="testPanel" role="tabpanel" aria-labelledby="testTab" aria-label="Công cụ tạo giọng nói">
@@ -347,6 +351,65 @@
           <div class="result-meta" id="aliasMoveMeta" role="status" aria-live="polite">Chưa có thay đổi.</div>
         </section>
       </section>
+
+      <section class="create-grid" id="createPanel" role="tabpanel" aria-labelledby="createTab" aria-label="Tạo nhân vật mới từ audio tham chiếu" hidden>
+        <form class="card design-card" id="createCharacterForm">
+          <div class="card-head">
+            <div><h2>Thông tin nhân vật mới</h2><p class="sub">Upload WAV tham chiếu, nhập transcript chính xác và tạo câu nghe thử.</p></div>
+            <span class="step">01 / CẤU HÌNH</span>
+          </div>
+          <div class="design-fields">
+            <div class="field">
+              <label for="newCharId">Mã char (lấy từ tên file WAV)</label>
+              <input id="newCharId" readonly required maxlength="128" pattern="[a-z0-9][a-z0-9_-]{0,127}" placeholder="được lấy tự động khi chọn file">
+            </div>
+            <div class="field">
+              <label for="newCharName">Tên hiển thị</label>
+              <input id="newCharName" required maxlength="160" placeholder="Tên nhân vật">
+            </div>
+          </div>
+          <div class="field">
+            <label for="newCharAudio">Audio giọng tham chiếu (WAV)</label>
+            <input id="newCharAudio" type="file" accept=".wav,audio/wav,audio/x-wav" required>
+            <div class="field-hint"><span>WAV tối đa 50 MiB; file gốc sẽ được lưu làm ref_audio.</span></div>
+          </div>
+          <div class="field">
+            <label for="newCharRefText">ref_text — bản chép chính xác của audio</label>
+            <textarea id="newCharRefText" required maxlength="2000" style="min-height:110px" placeholder="Gõ đúng từng từ được nói trong file tham chiếu."></textarea>
+          </div>
+          <div class="field">
+            <label for="newCharPreviewText">Câu để nghe thử</label>
+            <textarea id="newCharPreviewText" maxlength="2000" style="min-height:100px" placeholder="Để trống sẽ dùng câu mặc định.">Thiên địa hữu tình, giang hồ hữu mộng. Mong quân bảo trọng trên đường phía trước.</textarea>
+          </div>
+          <div class="field">
+            <label for="newCharSpeed">Tốc độ đọc</label>
+            <input id="newCharSpeed" type="number" min="0.01" step="any" value="1.0" placeholder="1.0">
+            <div class="field-hint"><span>Mặc định 1.0; lớn hơn đọc nhanh hơn, nhỏ hơn đọc chậm hơn.</span></div>
+          </div>
+          <div class="alias-card">
+            <div class="alias-head">
+              <div><h3>Alias chuyển sang nhân vật mới (không bắt buộc)</h3><div class="sub">Alias đã chọn sẽ bị gỡ khỏi char chủ cũ.</div></div>
+              <button class="text-button" id="reloadCreateAliases" type="button">Tải lại</button>
+            </div>
+            <input class="alias-search" id="createAliasSearch" placeholder="Lọc theo alias hoặc char chủ…" autocomplete="off">
+            <div class="alias-head"><button class="text-button" id="toggleCreateAliases" type="button">Chọn tất cả đang hiện</button><span class="badge" id="createAliasCount">0 đã chọn</span></div>
+            <div class="alias-list" id="createAliasList"><div class="alias-empty">Đang chờ danh sách alias.</div></div>
+          </div>
+          <div class="actions" style="margin-top:18px">
+            <button class="primary" id="createPreviewButton" type="submit">Tạo preview nghe thử</button>
+          </div>
+        </form>
+
+        <section class="card design-result" aria-label="Nghe thử và lưu nhân vật mới">
+          <div class="result-top"><div><h2>Nghe thử và lưu</h2><p class="sub">Chỉ lưu nhân vật sau khi preview nghe ổn.</p></div><span class="badge">VOICE CLONE</span></div>
+          <div class="visual" id="createVisual" aria-hidden="true"></div>
+          <div class="empty" id="createEmpty">Tạo preview để nghe thử giọng tham chiếu.</div>
+          <audio id="createPlayer" controls preload="metadata" hidden></audio>
+          <div class="result-meta" id="createMeta" role="status" aria-live="polite">Chưa có preview.</div>
+          <button class="primary primary-design" id="saveNewCharacter" type="button" disabled>Lưu nhân vật và alias</button>
+          <p class="footnote">Khi lưu, WAV upload trở thành <code>audio/&lt;char&gt;.wav</code>; preview chỉ dùng để nghe. Tất cả alias và JSON được kiểm tra trước khi thay đổi.</p>
+        </section>
+      </section>
     </main>
   </div>
   <div class="toast" id="toast" role="status"></div>
@@ -371,9 +434,11 @@
     const testTab = document.querySelector("#testTab");
     const designTab = document.querySelector("#designTab");
     const manageTab = document.querySelector("#manageTab");
+    const createTab = document.querySelector("#createTab");
     const testPanel = document.querySelector("#testPanel");
     const designPanel = document.querySelector("#designPanel");
     const managePanel = document.querySelector("#managePanel");
+    const createPanel = document.querySelector("#createPanel");
     const designForm = document.querySelector("#designForm");
     const saveDesignForm = document.querySelector("#saveDesignForm");
     const aliasList = document.querySelector("#aliasList");
@@ -395,8 +460,24 @@
     const targetAliasCount = document.querySelector("#targetAliasCount");
     const moveAliasButton = document.querySelector("#moveAliasButton");
     const aliasMoveMeta = document.querySelector("#aliasMoveMeta");
+    const createCharacterForm = document.querySelector("#createCharacterForm");
+    const createAliasList = document.querySelector("#createAliasList");
+    const createAliasSearch = document.querySelector("#createAliasSearch");
+    const reloadCreateAliases = document.querySelector("#reloadCreateAliases");
+    const toggleCreateAliases = document.querySelector("#toggleCreateAliases");
+    const createAliasCount = document.querySelector("#createAliasCount");
+    const createPlayer = document.querySelector("#createPlayer");
+    const createVisual = document.querySelector("#createVisual");
+    const createEmpty = document.querySelector("#createEmpty");
+    const createMeta = document.querySelector("#createMeta");
+    const createPreviewButton = document.querySelector("#createPreviewButton");
+    const saveNewCharacter = document.querySelector("#saveNewCharacter");
     let availableAliases = [];
     let managementCharacters = [];
+    let createAliases = [];
+    const selectedCreateAliases = new Set();
+    let createPreviewId = null;
+    let createPreviewUrl = null;
     let selectedPrimaryAlias = null;
     const selectedSecondaryAliases = new Set();
     let currentDesignPreviewId = null;
@@ -424,19 +505,24 @@
     function selectTab(tab) {
       const isDesign = tab === "design";
       const isManage = tab === "manage";
-      testTab.setAttribute("aria-selected", String(!isDesign));
+      const isCreate = tab === "create";
+      testTab.setAttribute("aria-selected", String(tab === "test"));
       designTab.setAttribute("aria-selected", String(isDesign));
       manageTab.setAttribute("aria-selected", String(isManage));
-      testPanel.hidden = isDesign || isManage;
+      createTab.setAttribute("aria-selected", String(isCreate));
+      testPanel.hidden = tab !== "test";
       designPanel.hidden = !isDesign;
       managePanel.hidden = !isManage;
+      createPanel.hidden = !isCreate;
       if (isDesign && availableAliases.length === 0) loadDesignAliases();
       if (isManage && managementCharacters.length === 0) loadManagementCharacters();
+      if (isCreate && createAliases.length === 0) loadCreateAliases();
     }
 
     testTab.addEventListener("click", () => selectTab("test"));
     designTab.addEventListener("click", () => selectTab("design"));
     manageTab.addEventListener("click", () => selectTab("manage"));
+    createTab.addEventListener("click", () => selectTab("create"));
 
     function fillSelect(select, items, labelFor, selectedValue = "") {
       select.replaceChildren(...items.map((item) => {
@@ -579,6 +665,200 @@
         moveAliasButton.disabled = false;
       }
     });
+
+    function setCreateMessage(message, kind = "") {
+      createMeta.textContent = message;
+      createMeta.dataset.kind = kind;
+    }
+
+    function renderCreateAliases() {
+      const query = createAliasSearch.value.trim().toLocaleLowerCase();
+      const visibleAliases = createAliases.filter((item) =>
+        `${item.alias} ${item.char} ${item.name}`.toLocaleLowerCase().includes(query)
+      );
+      if (!visibleAliases.length) {
+        createAliasList.innerHTML = '<div class="alias-empty">Không có alias phù hợp.</div>';
+      } else {
+        const fragment = document.createDocumentFragment();
+        for (const item of visibleAliases) {
+          const row = document.createElement("label");
+          row.className = "alias-row create-alias-row";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = item.alias;
+          checkbox.checked = selectedCreateAliases.has(item.alias);
+          checkbox.addEventListener("change", () => {
+            if (checkbox.checked) selectedCreateAliases.add(item.alias);
+            else selectedCreateAliases.delete(item.alias);
+            updateCreateAliasCount();
+          });
+          const alias = document.createElement("span");
+          alias.className = "alias-key";
+          alias.textContent = item.alias;
+          const owner = document.createElement("span");
+          owner.className = "alias-owner";
+          owner.textContent = `${item.name} · ${item.char}`;
+          row.append(checkbox, alias, owner);
+          fragment.append(row);
+        }
+        createAliasList.replaceChildren(fragment);
+      }
+      updateCreateAliasCount();
+    }
+
+    function updateCreateAliasCount() {
+      createAliasCount.textContent = `${selectedCreateAliases.size} đã chọn`;
+      const query = createAliasSearch.value.trim().toLocaleLowerCase();
+      const visible = createAliases.filter((item) =>
+        `${item.alias} ${item.char} ${item.name}`.toLocaleLowerCase().includes(query)
+      );
+      const allVisibleSelected = visible.length > 0 && visible.every((item) => selectedCreateAliases.has(item.alias));
+      toggleCreateAliases.textContent = allVisibleSelected ? "Bỏ chọn tất cả đang hiện" : "Chọn tất cả đang hiện";
+      toggleCreateAliases.disabled = visible.length === 0;
+    }
+
+    async function loadCreateAliases() {
+      reloadCreateAliases.disabled = true;
+      reloadCreateAliases.textContent = "Đang tải…";
+      try {
+        const response = await fetch("/api/voice-design/aliases", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        createAliases = data.aliases || [];
+        const available = new Set(createAliases.map((item) => item.alias));
+        for (const alias of selectedCreateAliases) if (!available.has(alias)) selectedCreateAliases.delete(alias);
+        renderCreateAliases();
+      } catch (error) {
+        createAliasList.innerHTML = `<div class="alias-empty">${escapeHtml(error.message)}</div>`;
+      } finally {
+        reloadCreateAliases.disabled = false;
+        reloadCreateAliases.textContent = "Tải lại";
+      }
+    }
+
+    createAliasSearch.addEventListener("input", renderCreateAliases);
+    reloadCreateAliases.addEventListener("click", loadCreateAliases);
+    toggleCreateAliases.addEventListener("click", () => {
+      const query = createAliasSearch.value.trim().toLocaleLowerCase();
+      const visible = createAliases.filter((item) =>
+        `${item.alias} ${item.char} ${item.name}`.toLocaleLowerCase().includes(query)
+      );
+      const shouldSelect = visible.some((item) => !selectedCreateAliases.has(item.alias));
+      for (const item of visible) {
+        if (shouldSelect) selectedCreateAliases.add(item.alias);
+        else selectedCreateAliases.delete(item.alias);
+      }
+      renderCreateAliases();
+    });
+
+    createCharacterForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!createCharacterForm.reportValidity()) return;
+      const audioFile = document.querySelector("#newCharAudio").files[0];
+      if (!audioFile) return;
+      const formData = new FormData();
+      formData.append("audio", audioFile);
+      formData.append("ref_text", document.querySelector("#newCharRefText").value.trim());
+      formData.append("preview_text", document.querySelector("#newCharPreviewText").value.trim());
+      formData.append("speed", document.querySelector("#newCharSpeed").value.trim() || "1.0");
+      createPreviewButton.disabled = true;
+      createPreviewButton.textContent = "Đang tạo preview…";
+      saveNewCharacter.disabled = true;
+      createPreviewId = null;
+      setCreateMessage("Đang tổng hợp câu thử bằng audio/ref_text đã nhập…");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 240000);
+      try {
+        const response = await fetch("/api/characters/create/preview", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        createPreviewId = data.preview_id;
+        document.querySelector("#newCharId").value = data.char_id;
+        if (createPreviewUrl) URL.revokeObjectURL(createPreviewUrl);
+        createPreviewUrl = `${data.audio_url}?v=${encodeURIComponent(data.preview_id)}`;
+        createPlayer.src = createPreviewUrl;
+        createPlayer.hidden = false;
+        createEmpty.hidden = true;
+        setCreateMessage(`Preview sẵn sàng · ${data.sample_rate} Hz · tốc độ ${document.querySelector("#newCharSpeed").value}`, "success");
+        saveNewCharacter.disabled = false;
+        createPlayer.play().catch(() => {});
+      } catch (error) {
+        setCreateMessage(error.name === "AbortError" ? "Preview quá thời gian chờ." : error.message, "error");
+      } finally {
+        clearTimeout(timeout);
+        createPreviewButton.disabled = false;
+        createPreviewButton.textContent = "Tạo preview nghe thử";
+      }
+    });
+
+    for (const selector of ["#newCharAudio", "#newCharRefText", "#newCharPreviewText", "#newCharSpeed"]) {
+      document.querySelector(selector).addEventListener("input", () => {
+        if (!createPreviewId) return;
+        createPreviewId = null;
+        saveNewCharacter.disabled = true;
+        setCreateMessage("Thông tin audio/câu thử đã đổi. Tạo preview mới trước khi lưu.");
+      });
+      document.querySelector(selector).addEventListener("change", () => {
+        if (!createPreviewId) return;
+        createPreviewId = null;
+        saveNewCharacter.disabled = true;
+        setCreateMessage("Thông tin audio/câu thử đã đổi. Tạo preview mới trước khi lưu.");
+      });
+    }
+
+    document.querySelector("#newCharAudio").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      document.querySelector("#newCharId").value = file && file.name.toLowerCase().endsWith(".wav")
+        ? file.name.slice(0, -4)
+        : "";
+    });
+
+    saveNewCharacter.addEventListener("click", async () => {
+      if (!createPreviewId) {
+        setCreateMessage("Hãy tạo preview mới trước khi lưu.", "error");
+        return;
+      }
+      const name = document.querySelector("#newCharName").value.trim();
+      if (!name) {
+        setCreateMessage("Nhập tên hiển thị trước khi lưu.", "error");
+        return;
+      }
+      saveNewCharacter.disabled = true;
+      saveNewCharacter.textContent = "Đang lưu…";
+      try {
+        const response = await fetch("/api/characters/create/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            preview_id: createPreviewId,
+            name,
+            aliases: [...selectedCreateAliases],
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        createPreviewId = null;
+        selectedCreateAliases.clear();
+        setCreateMessage(`Đã lưu ${data.name} (${data.char}) · ${data.aliases.length} alias · tốc độ ${data.speed}.`, "success");
+        showToast(`Đã tạo nhân vật ${data.char}`);
+        await loadCreateAliases();
+        await loadManagementCharacters();
+        await loadCharacters();
+      } catch (error) {
+        setCreateMessage(error.message, "error");
+        saveNewCharacter.disabled = false;
+      } finally {
+        saveNewCharacter.textContent = "Lưu nhân vật và alias";
+      }
+    });
+
+    createPlayer.addEventListener("play", () => createVisual.classList.add("playing"));
+    createPlayer.addEventListener("pause", () => createVisual.classList.remove("playing"));
+    createPlayer.addEventListener("ended", () => createVisual.classList.remove("playing"));
 
     function renderAliases() {
       const query = aliasSearch.value.trim().toLocaleLowerCase();

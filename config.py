@@ -10,11 +10,46 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 
+def _load_dotenv(path: Path) -> None:
+    """Load simple KEY=VALUE settings from a file beside this module.
+
+    Values already present in the process environment take precedence.
+    """
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except FileNotFoundError:
+        return
+    for line_number, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith("export "):
+            stripped = stripped[7:].lstrip()
+        key, separator, value = stripped.partition("=")
+        key = key.strip()
+        if not separator or not key or not key.replace("_", "").isalnum():
+            raise ValueError(f"Invalid .env entry at {path}:{line_number}")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        elif " #" in value:
+            value = value.split(" #", 1)[0].rstrip()
+        os.environ.setdefault(key, value)
+
+
+_load_dotenv(BASE_DIR / ".env")
+
+
 def _env_bool(name: str, default: bool) -> bool:
     value = os.getenv(name)
     if value is None:
         return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be true/false, 1/0, yes/no, or on/off")
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +58,8 @@ class Settings:
     characters_file: Path = BASE_DIR / "characters.json"
     output_dir: Path = BASE_DIR / "output"
     cache_dir: Path = BASE_DIR / "cache"
+    # kjanh/KhanhTTS-OmniVoice
+    # splendor1811/omnivoice-vietnamese
     model_id: str = os.getenv("TTS_MODEL_ID", "kjanh/KhanhTTS-OmniVoice")
     model_revision: str = os.getenv("TTS_MODEL_REVISION", "main")
     device: str = os.getenv("TTS_DEVICE", "auto")
@@ -30,6 +67,7 @@ class Settings:
     model_sample_rate: int = int(os.getenv("TTS_MODEL_SAMPLE_RATE", "24000"))
     output_sample_rate: int = int(os.getenv("TTS_OUTPUT_SAMPLE_RATE", "24000"))
     max_text_length: int = int(os.getenv("TTS_MAX_TEXT_LENGTH", "2000"))
+    # Set TTS_CACHE_ENABLED=false to synthesize every request without reusing WAVs.
     cache_enabled: bool = _env_bool("TTS_CACHE_ENABLED", True)
     cache_max_mb: int = int(os.getenv("TTS_CACHE_MAX_MB", "1024"))
     request_timeout_seconds: float = float(os.getenv("TTS_REQUEST_TIMEOUT_SECONDS", "120"))

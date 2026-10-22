@@ -3,8 +3,10 @@ __pycache__/
 .pytest_tmp/
 *.py[cod]
 .venv/
+.env
 cache/*.wav
 output/*.wav
+output/**/*.wav
 audio/*.wav
 !audio/.gitkeep
 !cache/.gitkeep

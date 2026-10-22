@@ -37,6 +37,7 @@ class AudioCache:
             "ref_text": character.ref_text,
             "ref_audio": str(character.ref_audio),
             "ref_audio_sha256": reference_hash.hexdigest(),
+            "speed": character.speed,
             "parameters": dict(character.parameters),
         }
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")

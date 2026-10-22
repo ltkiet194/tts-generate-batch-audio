@@ -28,7 +28,9 @@ Lần chạy đầu cần Internet để tải model khoảng vài GB từ Huggi
 
 Các file WAV mẫu không được tạo giả trong repository. Vì ba mục minh họa trong `characters.json` đang bật, server sẽ chủ động báo lỗi cho đến khi có đủ ba file WAV. Có thể xóa mục chưa dùng hoặc đặt `enabled: false`, nhưng file tham chiếu của mọi mục vẫn được kiểm tra để phát hiện cấu hình hỏng sớm.
 
-Muốn thêm nhân vật, chỉ cần thêm một object dưới `characters` và file WAV; không sửa Python. `char` là khóa JSON; `aliases` tùy chọn cho phép nhiều mã game dùng chung một giọng và cache. `language`, `ref_audio` và `ref_text` được lấy từ object nhân vật. `parameters` được chuyển thẳng vào `model.generate`, ngoại trừ bốn khóa dành riêng `text`, `language`, `ref_audio`, `ref_text`.
+Muốn thêm nhân vật, chỉ cần thêm một object dưới `characters` và file WAV; không sửa Python. `char` là khóa JSON; `aliases` tùy chọn cho phép nhiều mã game dùng chung một giọng và cache. `language`, `ref_audio` và `ref_text` được lấy từ object nhân vật. `speed` là tốc độ đọc riêng của char (mặc định `1.0`) và được kế thừa bởi mọi alias. `parameters` được chuyển thẳng vào `model.generate`, ngoại trừ các khóa dành riêng `text`, `language`, `ref_audio`, `ref_text`, `speed`.
+
+Xem [CHARACTER_SPEED.md](CHARACTER_SPEED.md) để chỉnh tốc độ và nạp lại cấu hình.
 
 Nếu client gửi mã chưa được cấu hình hoặc nhân vật bị tắt, server tự dùng nhân vật `default` thay vì trả `404/422`. Vì vậy `default` bắt buộc phải tồn tại, bật và có audio hợp lệ.
 
@@ -44,7 +46,7 @@ Từ thư mục bất kỳ:
 
 Chỉ bind `127.0.0.1` để API không bị mở ra mạng LAN. Swagger UI: <http://127.0.0.1:8011/docs>.
 
-Giao diện Voice Lab: <http://127.0.0.1:8011/>. Tab **Thử giọng** tạo/nghe/tải TTS; tab **Thiết kế giọng** tạo preview từ mô tả, chọn alias rồi lưu thành nhân vật mới; tab **Quản lý alias** chuyển alias giữa các char và lưu `characters.json`. Xem [API_USAGE.md](API_USAGE.md) để biết quy trình chi tiết.
+Giao diện Voice Lab: <http://127.0.0.1:8011/>. Tab **Thử giọng** tạo/nghe/tải TTS; **Thiết kế giọng** tạo voice từ mô tả; **Tạo nhân vật** upload WAV/ref_text (mã char tự lấy từ tên file bỏ `.wav`), nghe preview rồi lưu thành char chính mới; **Quản lý alias** chuyển alias giữa các char. Xem [API_USAGE.md](API_USAGE.md) để biết quy trình chi tiết.
 
 Có thể ép thiết bị trước khi chạy:
 
@@ -78,10 +80,12 @@ Kết quả được cache theo text, nhân vật, tham số, model và SHA-256 
 | `TTS_MODEL_SAMPLE_RATE` | `24000` | Sample rate thực của OmniVoice |
 | `TTS_OUTPUT_SAMPLE_RATE` | `24000` | Sample rate WAV; audio được resample nếu khác model |
 | `TTS_MAX_TEXT_LENGTH` | `2000` | Giới hạn ký tự/request |
-| `TTS_CACHE_ENABLED` | `true` | Bật cache WAV |
+| `TTS_CACHE_ENABLED` | `true` | `false` để tắt cache WAV; xem `/api/health` → `cache_enabled` để kiểm tra |
 | `TTS_CACHE_MAX_MB` | `1024` | Dung lượng cache tối đa |
 | `TTS_REQUEST_TIMEOUT_SECONDS` | `120` | Thời gian chờ gồm cả thời gian trong hàng đợi |
 | `TTS_MODEL_CACHE_DIR` | trống | Thư mục cache model truyền cho `from_pretrained` |
+
+Có thể copy `.env.example` thành `.env` cạnh `app.py` để cấu hình nhanh (ví dụ `TTS_CACHE_ENABLED=false`). Biến môi trường đặt ở Windows/PowerShell được ưu tiên hơn `.env`; cần khởi động lại server sau khi đổi.
 
 ## Kiểm thử
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -38,6 +39,7 @@ class Character:
     enabled: bool
     parameters: Mapping[str, Any]
     aliases: tuple[str, ...] = ()
+    speed: float = 1.0
 
     def public_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {"char": self.char, "name": self.name}
@@ -131,6 +133,14 @@ class CharacterManager:
             raise CharacterConfigError(f"{prefix}.enabled phải là true hoặc false.")
         if not isinstance(item["parameters"], dict):
             raise CharacterConfigError(f"{prefix}.parameters phải là một object.")
+        speed = item.get("speed", 1.0)
+        try:
+            speed_value = float(speed)
+        except (TypeError, ValueError, OverflowError):
+            speed_value = math.nan
+        if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not math.isfinite(speed_value) or speed_value <= 0:
+            raise CharacterConfigError(f"{prefix}.speed must be a finite number greater than 0 (default 1.0).")
+        speed = speed_value
         if not isinstance(item["ref_audio"], str) or not item["ref_audio"].strip():
             raise CharacterConfigError(f"{prefix}.ref_audio phải là đường dẫn không rỗng.")
 
@@ -156,7 +166,7 @@ class CharacterManager:
         if not ref_audio.is_file():
             raise CharacterConfigError(f"{prefix}.ref_audio không tồn tại: {ref_audio}")
 
-        reserved = {"text", "language", "ref_audio", "ref_text"}.intersection(item["parameters"])
+        reserved = {"text", "language", "ref_audio", "ref_text", "speed"}.intersection(item["parameters"])
         if reserved:
             raise CharacterConfigError(
                 f"{prefix}.parameters không được ghi đè: {', '.join(sorted(reserved))}."
@@ -170,6 +180,7 @@ class CharacterManager:
             enabled=item["enabled"],
             parameters=MappingProxyType(dict(item["parameters"])),
             aliases=tuple(aliases),
+            speed=float(speed),
         )
 
     def get(self, char_id: str) -> Character:
@@ -210,7 +221,13 @@ class CharacterManager:
         with self._lock:
             snapshot = tuple(self._characters.values())
         return [
-            {"char": item.char, "name": item.name, "enabled": item.enabled, "aliases": list(item.aliases)}
+            {
+                "char": item.char,
+                "name": item.name,
+                "enabled": item.enabled,
+                "aliases": list(item.aliases),
+                "speed": item.speed,
+            }
             for item in snapshot
         ]
 
@@ -306,6 +323,141 @@ class CharacterManager:
             finally:
                 staged.unlink(missing_ok=True)
             return self._characters[target_char]
+
+    def create_character_from_audio(
+        self,
+        *,
+        char_id: str,
+        name: str,
+        audio_source: Path,
+        ref_text: str,
+        aliases: list[str],
+        speed: float = 1.0,
+        language: str = "Vietnamese",
+        required_default_id: str,
+    ) -> Character:
+        """Create a character from an uploaded reference WAV and optionally claim aliases."""
+        char_id, name, ref_text, language = char_id.strip(), name.strip(), ref_text.strip(), language.strip()
+        aliases = [alias.strip() for alias in aliases]
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,127}", char_id):
+            raise CharacterConfigError("Mã char chỉ được gồm chữ thường, số, '_' và '-'.")
+        if not name or not ref_text or not language:
+            raise CharacterConfigError("Tên, ref_text và language không được để trống.")
+        try:
+            speed_value = float(speed)
+        except (TypeError, ValueError, OverflowError):
+            speed_value = math.nan
+        if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not math.isfinite(speed_value) or speed_value <= 0:
+            raise CharacterConfigError("speed phải là số hữu hạn lớn hơn 0.")
+        if len(set(aliases)) != len(aliases) or any(not alias for alias in aliases):
+            raise CharacterConfigError("Danh sách alias có giá trị rỗng hoặc trùng lặp.")
+        if not audio_source.is_file():
+            raise CharacterConfigError("Không tìm thấy file audio tham chiếu đã upload.")
+        try:
+            audio_info = sf.info(audio_source)
+        except Exception as exc:
+            raise CharacterConfigError(f"Audio tham chiếu không đọc được: {exc}") from exc
+        if audio_info.frames <= 0 or audio_info.samplerate <= 0:
+            raise CharacterConfigError("Audio tham chiếu rỗng hoặc không hợp lệ.")
+
+        with self._lock:
+            if char_id in self._characters:
+                raise CharacterConfigError(f"Char chính '{char_id}' đã tồn tại; không ghi đè.")
+            if char_id in self._aliases:
+                raise CharacterConfigError(f"'{char_id}' hiện là alias; không thể dùng làm mã char chính.")
+            owners: dict[str, Character] = {}
+            for alias in aliases:
+                owner = self._aliases.get(alias)
+                if owner is None or not owner.enabled:
+                    raise CharacterConfigError(f"Alias '{alias}' không còn khả dụng để chuyển.")
+                owners[alias] = owner
+
+            try:
+                data = json.loads(self._config_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CharacterConfigError(f"Không đọc được characters.json: {exc}") from exc
+            raw_characters = data.get("characters") if isinstance(data, dict) else None
+            if not isinstance(raw_characters, dict):
+                raise CharacterConfigError("Trường gốc 'characters' phải là một object JSON.")
+
+            for owner_id in {owner.char for owner in owners.values()}:
+                raw_owner = raw_characters.get(owner_id)
+                if not isinstance(raw_owner, dict):
+                    raise CharacterConfigError(f"characters.{owner_id} không hợp lệ.")
+                owner_aliases = raw_owner.get("aliases", [])
+                if not isinstance(owner_aliases, list) or any(not isinstance(value, str) for value in owner_aliases):
+                    raise CharacterConfigError(f"characters.{owner_id}.aliases không hợp lệ; hãy sửa JSON trước.")
+                selected_for_owner = [alias for alias in aliases if owners[alias].char == owner_id]
+                missing = [alias for alias in selected_for_owner if alias not in owner_aliases]
+                if missing:
+                    raise CharacterConfigError(
+                        f"characters.json đã thay đổi; alias không còn thuộc '{owner_id}': {', '.join(missing)}. Tải lại danh sách."
+                    )
+                remaining = [alias for alias in owner_aliases if alias not in selected_for_owner]
+                if remaining:
+                    raw_owner["aliases"] = remaining
+                else:
+                    raw_owner.pop("aliases", None)
+
+            audio_dir = self._base_dir / "audio"
+            audio_dir.mkdir(parents=True, exist_ok=True)
+            target_audio = audio_dir / f"{char_id}.wav"
+            if target_audio.exists():
+                raise CharacterConfigError(f"File audio đã tồn tại, không ghi đè: {target_audio.name}")
+            entry: dict[str, Any] = {
+                "name": name,
+                "ref_audio": target_audio.relative_to(self._base_dir).as_posix(),
+                "ref_text": ref_text,
+                "language": language,
+                "enabled": True,
+                "speed": speed_value,
+                "parameters": {},
+            }
+            if aliases:
+                entry["aliases"] = aliases
+            raw_characters[char_id] = entry
+
+            audio_fd, audio_name = tempfile.mkstemp(prefix=f".{char_id}-", suffix=".wav", dir=audio_dir)
+            os.close(audio_fd)
+            staged_audio = Path(audio_name)
+            json_fd, json_name = tempfile.mkstemp(
+                prefix=f".{self._config_path.name}-", suffix=".tmp", dir=self._config_path.parent
+            )
+            os.close(json_fd)
+            staged_json = Path(json_name)
+            audio_installed = False
+            json_installed = False
+            original_json = self._config_path.read_bytes()
+            try:
+                shutil.copyfile(audio_source, staged_audio)
+                staged_json.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                os.replace(staged_audio, target_audio)
+                audio_installed = True
+                candidate = CharacterManager(staged_json, self._base_dir)
+                candidate.load(required_default_id=required_default_id)
+                os.replace(staged_json, self._config_path)
+                json_installed = True
+                self.load(required_default_id=required_default_id)
+            except Exception:
+                if json_installed:
+                    restore_fd, restore_name = tempfile.mkstemp(
+                        prefix=f".{self._config_path.name}-restore-", suffix=".tmp", dir=self._config_path.parent
+                    )
+                    os.close(restore_fd)
+                    restore = Path(restore_name)
+                    try:
+                        restore.write_bytes(original_json)
+                        os.replace(restore, self._config_path)
+                        self.load(required_default_id=required_default_id)
+                    finally:
+                        restore.unlink(missing_ok=True)
+                if audio_installed:
+                    target_audio.unlink(missing_ok=True)
+                raise
+            finally:
+                staged_audio.unlink(missing_ok=True)
+                staged_json.unlink(missing_ok=True)
+            return self._characters[char_id]
 
     def promote_aliases_to_character(
         self,

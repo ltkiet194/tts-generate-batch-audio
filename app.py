@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from contextlib import asynccontextmanager
@@ -14,7 +16,7 @@ import threading
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -24,6 +26,7 @@ import soundfile as sf
 
 from cache import AudioCache
 from character_manager import (
+    Character,
     CharacterConfigError,
     CharacterDisabledError,
     CharacterManager,
@@ -54,6 +57,10 @@ inference_queue = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omnivoic
 voice_design_preview_dir = settings.output_dir / "voice_design_previews"
 voice_design_previews: dict[str, "VoiceDesignPreview"] = {}
 voice_design_preview_lock = threading.RLock()
+character_create_preview_dir = settings.output_dir / "character_create_previews"
+character_create_previews: dict[str, "CharacterCreatePreview"] = {}
+MAX_REFERENCE_AUDIO_BYTES = 50 * 1024 * 1024
+DEFAULT_CHARACTER_PREVIEW_TEXT = "Thiên địa hữu tình, giang hồ hữu mộng. Mong quân bảo trọng trên đường phía trước."
 
 
 class TTSRequest(BaseModel):
@@ -147,6 +154,32 @@ class AliasMoveRequest(BaseModel):
         return normalized
 
 
+class CharacterCreateSaveRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    preview_id: UUID
+    name: Annotated[str, Field(min_length=1, max_length=160)]
+    aliases: Annotated[list[str], Field(max_length=1000)] = Field(default_factory=list)
+
+    @field_validator("name")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("không được để trống")
+        return value
+
+    @field_validator("aliases")
+    @classmethod
+    def normalize_aliases(cls, values: list[str]) -> list[str]:
+        normalized = [value.strip() for value in values]
+        if any(not value for value in normalized):
+            raise ValueError("alias không được rỗng")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("danh sách alias bị trùng")
+        return normalized
+
+
 @dataclass(frozen=True, slots=True)
 class VoiceDesignPreview:
     path: Path
@@ -156,10 +189,22 @@ class VoiceDesignPreview:
     created_at: float
 
 
+@dataclass(frozen=True, slots=True)
+class CharacterCreatePreview:
+    char_id: str
+    reference_path: Path
+    preview_path: Path
+    ref_text: str
+    preview_text: str
+    speed: float
+    created_at: float
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings.output_dir.mkdir(parents=True, exist_ok=True)
     voice_design_preview_dir.mkdir(parents=True, exist_ok=True)
+    character_create_preview_dir.mkdir(parents=True, exist_ok=True)
     count = characters.load(required_default_id=settings.default_character)
     logger.info("Loaded %d character configurations", count)
     await run_in_threadpool(engine.load)
@@ -201,6 +246,7 @@ def health() -> dict[str, object]:
         "status": "ok" if engine.loaded else "starting",
         "model_loaded": engine.loaded,
         "device": engine.device,
+        "cache_enabled": audio_cache.enabled,
     }
 
 
@@ -246,6 +292,178 @@ def move_character_alias(request: AliasMoveRequest) -> dict[str, object]:
 def list_voice_design_aliases() -> dict[str, object]:
     """List aliases eligible for promotion; canonical IDs are omitted."""
     return {"aliases": characters.list_voice_design_aliases()}
+
+
+def _generate_character_create_preview_queued(
+    reference_path: Path,
+    ref_text: str,
+    preview_text: str,
+    speed: float,
+    preview_id: str,
+) -> Path:
+    character = Character(
+        char=f"preview_{preview_id}",
+        name="Character preview",
+        ref_audio=reference_path,
+        ref_text=ref_text,
+        language="Vietnamese",
+        enabled=True,
+        parameters={},
+        speed=speed,
+    )
+    audio = engine.generate(preview_text, character)
+    target = character_create_preview_dir / f"{preview_id}.preview.wav"
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{preview_id}-", suffix=".wav", dir=character_create_preview_dir
+    )
+    os.close(fd)
+    temp_path = Path(temp_name)
+    try:
+        sf.write(temp_path, audio, engine.output_sample_rate, format="WAV", subtype="PCM_16")
+        os.replace(temp_path, target)
+    finally:
+        temp_path.unlink(missing_ok=True)
+    return target
+
+
+@app.post("/api/characters/create/preview")
+def preview_new_character(
+    audio: UploadFile = File(...),
+    ref_text: Annotated[str, Form(min_length=1, max_length=settings.max_text_length)] = "",
+    preview_text: Annotated[str, Form(max_length=settings.max_text_length)] = DEFAULT_CHARACTER_PREVIEW_TEXT,
+    speed: str = Form(default="1.0"),
+) -> dict[str, object]:
+    if not engine.loaded:
+        raise HTTPException(status_code=503, detail="Model TTS chưa sẵn sàng.")
+    ref_text = ref_text.strip()
+    preview_text = preview_text.strip() or DEFAULT_CHARACTER_PREVIEW_TEXT
+    if not ref_text:
+        raise HTTPException(status_code=400, detail="ref_text không được để trống.")
+    try:
+        speed_value = float(speed.strip() or "1.0")
+    except (AttributeError, TypeError, ValueError, OverflowError) as exc:
+        raise HTTPException(status_code=400, detail="speed phải là số hữu hạn lớn hơn 0.") from exc
+    if not math.isfinite(speed_value) or speed_value <= 0:
+        raise HTTPException(status_code=400, detail="speed phải là số hữu hạn lớn hơn 0.")
+
+    uploaded_name = (audio.filename or "").replace("\\", "/").rsplit("/", 1)[-1]
+    if not uploaded_name.lower().endswith(".wav"):
+        raise HTTPException(status_code=400, detail="Tên file upload phải có phần mở rộng .wav.")
+    char_id = uploaded_name[:-4]
+    if not char_id or len(char_id) > 128 or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,127}", char_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Tên file trước phần mở rộng .wav phải là mã char hợp lệ (chữ thường, số, '_' hoặc '-').",
+        )
+
+    audio_bytes = audio.file.read(MAX_REFERENCE_AUDIO_BYTES + 1)
+    if len(audio_bytes) > MAX_REFERENCE_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail="File WAV tham chiếu vượt quá giới hạn 50 MiB.")
+    preview_id = uuid4().hex
+    reference_path = character_create_preview_dir / f"{preview_id}.ref.wav"
+    generated_path = character_create_preview_dir / f"{preview_id}.preview.wav"
+    reference_path.write_bytes(audio_bytes)
+    try:
+        info = sf.info(reference_path)
+        if info.format != "WAV" or info.frames <= 0 or info.samplerate <= 0:
+            raise ValueError("Chỉ chấp nhận WAV hợp lệ có audio.")
+    except Exception as exc:
+        reference_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail=f"File tham chiếu không phải WAV hợp lệ: {exc}") from exc
+
+    future = inference_queue.submit(
+        _generate_character_create_preview_queued,
+        reference_path,
+        ref_text,
+        preview_text,
+        speed_value,
+        preview_id,
+    )
+    try:
+        generated_path = future.result(timeout=settings.request_timeout_seconds)
+    except FutureTimeoutError as exc:
+        cancelled = future.cancel()
+        if cancelled:
+            reference_path.unlink(missing_ok=True)
+            generated_path.unlink(missing_ok=True)
+        else:
+            future.add_done_callback(
+                lambda _: (reference_path.unlink(missing_ok=True), generated_path.unlink(missing_ok=True))
+            )
+        logger.warning("Character preview timeout id=%s", preview_id)
+        raise HTTPException(status_code=503, detail="Preview quá thời gian chờ hoặc hàng đợi inference đang bận.") from exc
+    except Exception as exc:
+        reference_path.unlink(missing_ok=True)
+        generated_path.unlink(missing_ok=True)
+        logger.exception("Character preview generation failed")
+        raise HTTPException(status_code=500, detail="Tạo preview thất bại. Xem log server để biết chi tiết.") from exc
+
+    preview = CharacterCreatePreview(
+        char_id=char_id,
+        reference_path=reference_path,
+        preview_path=generated_path,
+        ref_text=ref_text,
+        preview_text=preview_text,
+        speed=speed_value,
+        created_at=time.time(),
+    )
+    with voice_design_preview_lock:
+        character_create_previews[preview_id] = preview
+        while len(character_create_previews) > 30:
+            oldest_id = min(character_create_previews, key=lambda key: character_create_previews[key].created_at)
+            expired = character_create_previews.pop(oldest_id)
+            expired.reference_path.unlink(missing_ok=True)
+            expired.preview_path.unlink(missing_ok=True)
+    logger.info("New character preview generated id=%s", preview_id)
+    return {
+        "preview_id": preview_id,
+        "char_id": char_id,
+        "audio_url": f"/api/characters/create/previews/{preview_id}",
+        "sample_rate": engine.output_sample_rate,
+    }
+
+
+@app.get("/api/characters/create/previews/{preview_id}", response_class=FileResponse)
+def get_new_character_preview(preview_id: UUID) -> FileResponse:
+    with voice_design_preview_lock:
+        preview = character_create_previews.get(preview_id.hex)
+    if preview is None or not preview.preview_path.is_file():
+        raise HTTPException(status_code=404, detail="Preview không còn tồn tại; hãy tạo lại.")
+    return FileResponse(preview.preview_path, media_type="audio/wav", filename=f"character-preview-{preview_id.hex[:12]}.wav")
+
+
+@app.post("/api/characters/create/save")
+def save_new_character(request: CharacterCreateSaveRequest) -> dict[str, object]:
+    preview_id = request.preview_id.hex
+    with voice_design_preview_lock:
+        preview = character_create_previews.get(preview_id)
+        if preview is None or not preview.reference_path.is_file():
+            raise HTTPException(status_code=404, detail="Audio upload/preview đã hết hạn; hãy upload và nghe thử lại.")
+        try:
+            created = characters.create_character_from_audio(
+                char_id=preview.char_id,
+                name=request.name,
+                audio_source=preview.reference_path,
+                ref_text=preview.ref_text,
+                aliases=request.aliases,
+                speed=preview.speed,
+                required_default_id=settings.default_character,
+            )
+        except CharacterConfigError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        character_create_previews.pop(preview_id, None)
+        preview.reference_path.unlink(missing_ok=True)
+        preview.preview_path.unlink(missing_ok=True)
+
+    logger.info("Created character char=%s moved_aliases=%d", created.char, len(request.aliases))
+    return {
+        "status": "ok",
+        "char": created.char,
+        "name": created.name,
+        "aliases": list(created.aliases),
+        "ref_audio": created.ref_audio.relative_to(settings.base_dir).as_posix(),
+        "speed": created.speed,
+    }
 
 
 @app.post("/api/characters/reload")
