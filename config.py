@@ -52,12 +52,21 @@ def _env_bool(name: str, default: bool) -> bool:
     raise ValueError(f"{name} must be true/false, 1/0, yes/no, or on/off")
 
 
+def _env_path(name: str, default: Path) -> Path:
+    """Resolve relative environment paths from the project directory."""
+    value = os.getenv(name)
+    if not value:
+        return default
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else BASE_DIR / path
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     base_dir: Path = BASE_DIR
-    characters_file: Path = BASE_DIR / "characters.json"
-    output_dir: Path = BASE_DIR / "output"
-    cache_dir: Path = BASE_DIR / "cache"
+    characters_file: Path = _env_path("TTS_CHARACTERS_FILE", BASE_DIR / "characters.json")
+    output_dir: Path = _env_path("TTS_OUTPUT_DIR", BASE_DIR / "output")
+    cache_dir: Path = _env_path("TTS_CACHE_DIR", BASE_DIR / "cache")
     # kjanh/KhanhTTS-OmniVoice
     # splendor1811/omnivoice-vietnamese
     model_id: str = os.getenv("TTS_MODEL_ID", "kjanh/KhanhTTS-OmniVoice")

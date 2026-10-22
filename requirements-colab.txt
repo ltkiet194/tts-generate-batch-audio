@@ -1,0 +1,5 @@
+# Colab already provides a CUDA-compatible PyTorch build; do not replace it.
+# Match the version used by this project; Colab provides Torch separately.
+omnivoice==0.2.1
+numpy>=1.26,<3
+soundfile>=0.12,<1

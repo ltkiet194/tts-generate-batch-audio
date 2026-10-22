@@ -1,5 +1,7 @@
 # Wandering Sword — Local OmniVoice TTS API
 
+Muốn dùng GPU Google Colab để sinh trước toàn bộ bộ WAV (không cần gọi API khi chơi), xem [COLAB_BATCH.md](COLAB_BATCH.md) và chạy `batch_generate.py` với dữ liệu `id,char,text`.
+
 REST API chạy cục bộ cho model [`kjanh/KhanhTTS-OmniVoice`](https://huggingface.co/kjanh/KhanhTTS-OmniVoice), hỗ trợ clone giọng theo cấu hình nhân vật. Model được tải đúng **một lần** lúc server khởi động.
 
 ## Chuẩn bị
