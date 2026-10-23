@@ -5,7 +5,7 @@
       "ref_audio": "audio/vu_van_dat.wav",
       "ref_text": "Mắt nhìn. Sư phụ bảo tối nghe hắn ta luyện khí công, cái gì mà thần ngưng đan điền, tức du tử phủ",
       "language": "Vietnamese",
-      "enabled": false,
+      "enabled": true,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -27,33 +27,7 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
-        "bat_luong_kim",
-        "chu_ngu_ca",
-        "dao_thu_thao_khau",
-        "de_tu_phich_lich_mon",
-        "ha_son",
-        "hai_thuong_trieu_luan",
-        "lao_au",
-        "lao_trieu",
-        "linh_a",
-        "lu_hau",
-        "ly_a_tu",
-        "mao_nhan",
-        "nguoi_ban_duoc_lieu",
-        "nguoi_lam",
-        "sang_kiet",
-        "te_duc_long",
-        "tho_may_truong_thai_chuc",
-        "tho_thuyen_loi_truc",
-        "thu_linh_son_tac_dat_gia",
-        "thuy_phi_lau_la",
-        "tieu_tam_phu",
-        "trieu_duc",
-        "trinh_nhi_nguu",
-        "tue_ninh",
-        "tuong_tieu_dau",
-        "ve_binh_phan_thanh",
-        "vuong_huu_tai"
+        
       ],
       "speed": 1.2
     },
@@ -247,6 +221,8 @@
       "name": "Mộc Cao Phong",
       "ref_audio": "audio/moc_cao_phong.wav",
       "aliases": [
+        "thon_truong_trai_a_long",
+        "trac_ngoc_lau_chuong_su",
         "ac_khuyen_tieu_dac",
         "bach_vo_thuong",
         "chau_bach",
@@ -323,6 +299,7 @@
         "lo_khai",
         "luu_manh",
         "ly_thanh_troc",
+        "ly_thanh_truoc",
         "ngo_dai_huu",
         "nguoi_cheo_do_dam_u_van",
         "npc_dien_ba_quang",
@@ -709,6 +686,7 @@
       "name": "Độ Nan Hòa Thượng",
       "ref_audio": "audio/do_nan_hoa_thuong.wav",
       "aliases": [
+        "lang_y_ton_lao",
         "au_duong_hien_cong",
         "bao_dai_phu",
         "chuong_quay_uong_thai",
@@ -899,7 +877,9 @@
         "nguyen_tung",
         "o_hung",
         "phuong_khoat_hai",
+        "tien_chuong_quay",
         "tan_dung",
+
         "thanh_lao",
         "thien_kiem_tong_nhac_cuu",
         "thu_linh_hai_khau",
@@ -952,6 +932,7 @@
         "phang_chu_vu_phang",
         "tang_la",
         "ton_ba_ba",
+        "thim_chau",
         "ton_thi",
         "trieu_thi",
         "vu_ba_ba"
@@ -1163,6 +1144,7 @@
         "co_tu_quy",
         "lien_tam",
         "chu_ba_tran_tu",
+        "chu_bo_tran_tu",
         "nguyen_minh"
       ],
       "voice_profile": {
@@ -1198,6 +1180,7 @@
         "bo_dau_tran",
         "chu_dai_nhan",
         "chuong_quy_ly_hach",
+        "tue_khong",
         "dao_huyen",
         "de_tu_thien_son",
         "duong_ao",
@@ -1503,6 +1486,8 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
+        "tuan_yeu_yeu",
+        "tam_yeu_yeu",
         "bao_thi",
         "dao_thi",
         "diep_tam_nuong",
@@ -1579,7 +1564,8 @@
         "vuong_thien_thong",
         "vuu_tieu_dau",
         "au_duong_kiem_anh",
-        "huyen_ly"
+        "huyen_ly",
+        "nguoi_ban_den_hoa"
       ]
     },
     "duong_trieu_bao_cong": {
@@ -1672,6 +1658,7 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
+        	"vo_danh",
         "binh_linh_huan_coc_quan",
         "bo_khoai_ho_chu",
         "bo_khoai_luc_phien_mon",
@@ -1681,6 +1668,7 @@
         "hac_y_thu_linh",
         "han_hai_cuong_long_loi_van_quan",
         "hue_khong",
+        "hue_dat",
         "le_chuong_quy",
         "linh_gac_huan_coc_quan",
         "linh_gac_phu_tuong_quan",
@@ -1767,7 +1755,34 @@
         "van_hao",
         "vo_dai_luc",
         "xuong_gia_a",
-        "khong_luong"
+        "khong_luong",
+        "bat_luong_kim",
+        "chu_ngu_ca",
+        "dao_thu_thao_khau",
+        "de_tu_phich_lich_mon",
+        "ha_son",
+        "hai_thuong_trieu_luan",
+        "lao_au",
+        "lao_trieu",
+        "linh_a",
+        "lu_hau",
+        "ly_a_tu",
+        "mao_nhan",
+        "nguoi_ban_duoc_lieu",
+        "nguoi_lam",
+        "sang_kiet",
+        "te_duc_long",
+        "tho_may_truong_thai_chuc",
+        "tho_thuyen_loi_truc",
+        "thu_linh_son_tac_dat_gia",
+        "thuy_phi_lau_la",
+        "tieu_tam_phu",
+        "trieu_duc",
+        "trinh_nhi_nguu",
+        "tue_ninh",
+        "tuong_tieu_dau",
+        "ve_binh_phan_thanh",
+        "vuong_huu_tai"
       ]
     },
     "truong_nghia_bao_cong": {
@@ -1775,7 +1790,7 @@
       "ref_audio": "audio/truong_nghia_bao_cong.wav",
       "ref_text": "mẹ thảo dân nói rồi mẹ thảo dân nói phải mời bao đại nhân đến nhà đó",
       "language": "Vietnamese",
-      "enabled": false,
+      "enabled": true,
       "speed": 0.9,
       "parameters": {},
       "voice_profile": {
@@ -1821,6 +1836,7 @@
         "thuong_nhan_gia_vi",
         "tieu_nhi_bach_lac",
         "tieu_phu",
+        "tieu_phu_truong",
         "tran_lan_hy",
         "trieu_cong_tu",
         "trieu_thac",

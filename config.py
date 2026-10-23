@@ -78,7 +78,7 @@ class Settings:
     output_sample_rate: int = int(os.getenv("TTS_OUTPUT_SAMPLE_RATE", "24000"))
     max_text_length: int = int(os.getenv("TTS_MAX_TEXT_LENGTH", "2000"))
     # Set TTS_CACHE_ENABLED=false to synthesize every request without reusing WAVs.
-    cache_enabled: bool = _env_bool("TTS_CACHE_ENABLED", True)
+    cache_enabled: bool = _env_bool("TTS_CACHE_ENABLED", False)
     cache_max_mb: int = int(os.getenv("TTS_CACHE_MAX_MB", "1024"))
     request_timeout_seconds: float = float(os.getenv("TTS_REQUEST_TIMEOUT_SECONDS", "120"))
     model_cache_dir: str | None = os.getenv("TTS_MODEL_CACHE_DIR") or None
