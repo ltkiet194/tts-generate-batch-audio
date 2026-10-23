@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import json
 import math
 import os
 import re
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import tempfile
 import threading
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -33,6 +34,7 @@ from character_manager import (
     CharacterNotFoundError,
 )
 from config import settings
+from integrity_checker import check_integrity
 from tts_engine import TTSEngine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -59,6 +61,7 @@ voice_design_previews: dict[str, "VoiceDesignPreview"] = {}
 voice_design_preview_lock = threading.RLock()
 character_create_preview_dir = settings.output_dir / "character_create_previews"
 character_create_previews: dict[str, "CharacterCreatePreview"] = {}
+character_edit_preview_dir = settings.output_dir / "character_edit_previews"
 MAX_REFERENCE_AUDIO_BYTES = 50 * 1024 * 1024
 DEFAULT_CHARACTER_PREVIEW_TEXT = "Thiên địa hữu tình, giang hồ hữu mộng. Mong quân bảo trọng trên đường phía trước."
 
@@ -180,6 +183,56 @@ class CharacterCreateSaveRequest(BaseModel):
         return normalized
 
 
+class CharacterEditRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: Annotated[str, Field(min_length=1, max_length=160)]
+    ref_text: Annotated[str, Field(min_length=1, max_length=settings.max_text_length)]
+    language: Annotated[str, Field(min_length=1, max_length=64)] = "Vietnamese"
+    enabled: bool = True
+    speed: Annotated[float, Field(gt=0)] = 1.0
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    aliases: Annotated[list[str], Field(max_length=2000)] = Field(default_factory=list)
+
+    @field_validator("name", "ref_text", "language")
+    @classmethod
+    def strip_required(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("không được để trống")
+        return value
+
+    @field_validator("aliases")
+    @classmethod
+    def normalize_aliases(cls, values: list[str]) -> list[str]:
+        normalized = [value.strip() for value in values]
+        if any(not value for value in normalized):
+            raise ValueError("alias không được rỗng")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("danh sách alias bị trùng")
+        return normalized
+
+    @field_validator("parameters")
+    @classmethod
+    def reject_reserved_parameters(cls, value: dict[str, Any]) -> dict[str, Any]:
+        reserved = {"text", "language", "ref_audio", "ref_text", "speed"}.intersection(value)
+        if reserved:
+            raise ValueError(f"parameters không được ghi đè: {', '.join(sorted(reserved))}")
+        return value
+
+
+class CharacterEditPreviewRequest(CharacterEditRequest):
+    preview_text: Annotated[str, Field(min_length=1, max_length=settings.max_text_length)]
+
+    @field_validator("preview_text")
+    @classmethod
+    def strip_preview_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("không được để trống")
+        return value
+
+
 @dataclass(frozen=True, slots=True)
 class VoiceDesignPreview:
     path: Path
@@ -205,6 +258,7 @@ async def lifespan(_: FastAPI):
     settings.output_dir.mkdir(parents=True, exist_ok=True)
     voice_design_preview_dir.mkdir(parents=True, exist_ok=True)
     character_create_preview_dir.mkdir(parents=True, exist_ok=True)
+    character_edit_preview_dir.mkdir(parents=True, exist_ok=True)
     count = characters.load(required_default_id=settings.default_character)
     logger.info("Loaded %d character configurations", count)
     await run_in_threadpool(engine.load)
@@ -258,6 +312,95 @@ def list_characters() -> dict[str, object]:
 @app.get("/api/characters/manage")
 def list_characters_for_management() -> dict[str, object]:
     return {"characters": characters.list_management()}
+
+
+@app.get("/api/characters/integrity")
+def character_integrity() -> dict[str, object]:
+    try:
+        return check_integrity(settings.characters_file)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        logger.exception("Character integrity check failed")
+        raise HTTPException(status_code=500, detail=f"Không kiểm tra được dữ liệu nhân vật: {exc}") from exc
+
+
+def _generate_character_edit_preview_queued(
+    request: CharacterEditPreviewRequest,
+    original: Character,
+) -> Path:
+    preview_character = Character(
+        char=original.char,
+        name=request.name,
+        ref_audio=original.ref_audio,
+        ref_text=request.ref_text,
+        language=request.language,
+        enabled=True,
+        parameters=request.parameters,
+        aliases=tuple(request.aliases),
+        speed=request.speed,
+    )
+    audio = engine.generate(request.preview_text, preview_character)
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f"edit-{original.char}-", suffix=".wav", dir=character_edit_preview_dir
+    )
+    os.close(fd)
+    path = Path(temporary_name)
+    try:
+        sf.write(path, audio, engine.output_sample_rate, format="WAV", subtype="PCM_16")
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
+@app.post("/api/characters/{char_id}/preview", response_class=FileResponse)
+def preview_character_edit(char_id: str, request: CharacterEditPreviewRequest) -> FileResponse:
+    try:
+        original = characters.get_canonical(char_id)
+    except CharacterNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy char chính '{char_id}'.") from exc
+    future = inference_queue.submit(_generate_character_edit_preview_queued, request, original)
+    try:
+        path = future.result(timeout=settings.request_timeout_seconds)
+    except FutureTimeoutError as exc:
+        future.cancel()
+        raise HTTPException(status_code=504, detail="Tạo preview quá thời gian chờ.") from exc
+    except Exception as exc:
+        logger.exception("Character edit preview failed char=%s", char_id)
+        raise HTTPException(status_code=500, detail="Tạo preview thất bại. Xem log server.") from exc
+    return FileResponse(
+        path,
+        media_type="audio/wav",
+        filename=f"{char_id}-preview.wav",
+        background=BackgroundTask(path.unlink, missing_ok=True),
+    )
+
+
+@app.put("/api/characters/{char_id}")
+def update_character(char_id: str, request: CharacterEditRequest) -> dict[str, object]:
+    try:
+        updated, backup = characters.update_character(
+            char_id=char_id,
+            name=request.name,
+            ref_text=request.ref_text,
+            language=request.language,
+            enabled=request.enabled,
+            speed=request.speed,
+            parameters=request.parameters,
+            aliases=request.aliases,
+            required_default_id=settings.default_character,
+        )
+    except CharacterNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy char chính '{char_id}'.") from exc
+    except CharacterConfigError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    logger.info("Updated character char=%s backup=%s", char_id, backup.name)
+    return {
+        "status": "saved",
+        "character": updated.public_dict(),
+        "speed": updated.speed,
+        "enabled": updated.enabled,
+        "backup": backup.name,
+    }
 
 
 @app.post("/api/characters/aliases/move")

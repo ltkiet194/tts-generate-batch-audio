@@ -124,7 +124,7 @@
       opacity: 0; pointer-events: none; transition: .2s; font-size: 13px;
     }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
-    .tabs { display: flex; gap: 8px; margin: 0 0 22px; padding: 5px; width: fit-content; border: 1px solid var(--line); border-radius: 14px; background: #141a16; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; padding: 5px; width: fit-content; border: 1px solid var(--line); border-radius: 14px; background: #141a16; }
     .tab-button { border: 0; border-radius: 10px; padding: 10px 15px; color: var(--muted); background: transparent; font-size: 13px; font-weight: 750; }
     .tab-button[aria-selected="true"] { color: var(--lime-ink); background: var(--lime); }
     .design-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: 18px; align-items: start; }
@@ -159,6 +159,7 @@
     .save-block { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
     .save-block .field { margin-bottom: 12px; }
     .save-note { color: #87948a; font-size: 12px; margin: 8px 0 14px; }
+    .integrity-report { margin-top: 14px; max-height: 360px; overflow: auto; white-space: pre-wrap; word-break: break-word; padding: 14px; border: 1px solid var(--line); border-radius: 12px; color: #bdc8be; background: #111713; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .primary-design { width: 100%; }
     @media (max-width: 760px) {
       .shell { width: min(100% - 28px, 560px); }
@@ -199,6 +200,7 @@
         <button class="tab-button" id="testTab" type="button" role="tab" aria-selected="true" aria-controls="testPanel">Thử giọng</button>
         <button class="tab-button" id="designTab" type="button" role="tab" aria-selected="false" aria-controls="designPanel">Thiết kế giọng</button>
         <button class="tab-button" id="manageTab" type="button" role="tab" aria-selected="false" aria-controls="managePanel">Quản lý alias</button>
+        <button class="tab-button" id="editTab" type="button" role="tab" aria-selected="false" aria-controls="editPanel">Chỉnh sửa nhân vật</button>
         <button class="tab-button" id="createTab" type="button" role="tab" aria-selected="false" aria-controls="createPanel">Tạo nhân vật</button>
       </nav>
 
@@ -352,6 +354,69 @@
         </section>
       </section>
 
+      <section class="create-grid" id="editPanel" role="tabpanel" aria-labelledby="editTab" aria-label="Chỉnh sửa nhân vật chính" hidden>
+        <form class="card design-card" id="editCharacterForm">
+          <div class="card-head">
+            <div><h2>Chọn nhân vật chính</h2><p class="sub">Tìm bằng key, tên hiển thị hoặc alias. Alias sẽ mở char chính đang sở hữu.</p></div>
+            <span class="step">EDIT</span>
+          </div>
+          <div class="field">
+            <label for="editCharacterSearch">Tìm nhân vật</label>
+            <input id="editCharacterSearch" list="editCharacterOptions" autocomplete="off" placeholder="Nhập key, tên hoặc alias…">
+            <datalist id="editCharacterOptions"></datalist>
+            <div class="field-hint"><span id="editResolvedHint">Chưa chọn nhân vật.</span><button class="text-button" id="reloadEditCharacters" type="button">Tải lại</button></div>
+          </div>
+          <div id="editCharacterFields" hidden>
+            <div class="design-fields">
+              <div class="field"><label for="editCharKey">Key char chính</label><input id="editCharKey" readonly></div>
+              <div class="field"><label for="editCharName">Tên hiển thị</label><input id="editCharName" required maxlength="160"></div>
+              <div class="field"><label for="editCharLanguage">Ngôn ngữ</label><input id="editCharLanguage" required maxlength="64"></div>
+              <div class="field"><label for="editCharSpeed">Speed</label><input id="editCharSpeed" type="number" required min="0.01" step="any"></div>
+            </div>
+            <div class="field"><label class="check-row"><input id="editCharEnabled" type="checkbox"> Cho phép sử dụng nhân vật</label></div>
+            <div class="field">
+              <label for="editCharRefText">ref_text</label>
+              <textarea id="editCharRefText" required maxlength="2000" style="min-height:110px"></textarea>
+              <div class="field-hint"><span id="editRefAudio"></span></div>
+            </div>
+            <div class="field">
+              <label for="editCharAliases">Aliases — mỗi dòng một key</label>
+              <textarea id="editCharAliases" style="min-height:150px" spellcheck="false"></textarea>
+              <div class="field-hint"><span>Được phép để trống. Không được trùng char chính hoặc alias của char khác.</span><span id="editAliasCount">0 alias</span></div>
+            </div>
+            <div class="field">
+              <label for="editCharParameters">Parameters — JSON object</label>
+              <textarea id="editCharParameters" style="min-height:100px" spellcheck="false">{}</textarea>
+            </div>
+            <div class="field">
+              <label for="editPreviewText">Câu nghe thử</label>
+              <textarea id="editPreviewText" maxlength="2000" style="min-height:90px">Thiên địa hữu tình, giang hồ hữu mộng. Mong quân bảo trọng trên đường phía trước.</textarea>
+            </div>
+            <div class="actions">
+              <button class="secondary" id="editPreviewButton" type="button">Nghe thử</button>
+              <button class="primary" id="editSaveButton" type="submit">Lưu characters.json</button>
+            </div>
+            <div class="alias-card" id="editAliasTransfer" hidden>
+              <div class="alias-head"><h3>Chuyển alias sang giọng khác</h3><span class="badge" id="editSelectedAlias"></span></div>
+              <div class="field">
+                <label for="editAliasTarget">Char chính nhận alias</label>
+                <select id="editAliasTarget"></select>
+              </div>
+              <button class="secondary" id="moveSelectedAlias" type="button" style="width:100%">Chuyển alias và lưu JSON</button>
+            </div>
+          </div>
+        </form>
+        <section class="card design-result" aria-label="Kết quả chỉnh sửa nhân vật">
+          <div class="result-top"><div><h2>Kiểm tra thay đổi</h2><p class="sub">Preview dùng audio tham chiếu hiện tại cùng speed/ref_text/parameters đang nhập.</p></div><span class="badge">CHAR EDIT</span></div>
+          <div class="empty" id="editPreviewEmpty">Chọn một nhân vật để bắt đầu.</div>
+          <audio id="editPreviewPlayer" controls preload="metadata" hidden></audio>
+          <div class="result-meta" id="editCharacterMeta" role="status" aria-live="polite">Chưa có thay đổi.</div>
+          <button class="secondary" id="checkCharacterIntegrity" type="button" style="width:100%">Kiểm tra mất nhân vật / alias</button>
+          <pre class="integrity-report" id="characterIntegrityReport" hidden></pre>
+          <p class="footnote">Mỗi lần lưu sẽ tạo file <code>characters.backup-edit-*.json</code>, kiểm tra toàn bộ JSON rồi reload cấu hình. Model không bị tải lại.</p>
+        </section>
+      </section>
+
       <section class="create-grid" id="createPanel" role="tabpanel" aria-labelledby="createTab" aria-label="Tạo nhân vật mới từ audio tham chiếu" hidden>
         <form class="card design-card" id="createCharacterForm">
           <div class="card-head">
@@ -434,10 +499,12 @@
     const testTab = document.querySelector("#testTab");
     const designTab = document.querySelector("#designTab");
     const manageTab = document.querySelector("#manageTab");
+    const editTab = document.querySelector("#editTab");
     const createTab = document.querySelector("#createTab");
     const testPanel = document.querySelector("#testPanel");
     const designPanel = document.querySelector("#designPanel");
     const managePanel = document.querySelector("#managePanel");
+    const editPanel = document.querySelector("#editPanel");
     const createPanel = document.querySelector("#createPanel");
     const designForm = document.querySelector("#designForm");
     const saveDesignForm = document.querySelector("#saveDesignForm");
@@ -472,6 +539,22 @@
     const createMeta = document.querySelector("#createMeta");
     const createPreviewButton = document.querySelector("#createPreviewButton");
     const saveNewCharacter = document.querySelector("#saveNewCharacter");
+    const editCharacterForm = document.querySelector("#editCharacterForm");
+    const editCharacterSearch = document.querySelector("#editCharacterSearch");
+    const editCharacterOptions = document.querySelector("#editCharacterOptions");
+    const editCharacterFields = document.querySelector("#editCharacterFields");
+    const editResolvedHint = document.querySelector("#editResolvedHint");
+    const editCharacterMeta = document.querySelector("#editCharacterMeta");
+    const editPreviewButton = document.querySelector("#editPreviewButton");
+    const editSaveButton = document.querySelector("#editSaveButton");
+    const editPreviewPlayer = document.querySelector("#editPreviewPlayer");
+    const reloadEditCharacters = document.querySelector("#reloadEditCharacters");
+    const checkCharacterIntegrity = document.querySelector("#checkCharacterIntegrity");
+    const characterIntegrityReport = document.querySelector("#characterIntegrityReport");
+    const editAliasTransfer = document.querySelector("#editAliasTransfer");
+    const editSelectedAlias = document.querySelector("#editSelectedAlias");
+    const editAliasTarget = document.querySelector("#editAliasTarget");
+    const moveSelectedAlias = document.querySelector("#moveSelectedAlias");
     let availableAliases = [];
     let managementCharacters = [];
     let createAliases = [];
@@ -483,6 +566,9 @@
     let currentDesignPreviewId = null;
     let designAudioUrl = null;
     let audioUrl = null;
+    let editPreviewUrl = null;
+    let editingCharacter = null;
+    let editingViaAlias = null;
     let toastTimer = null;
 
     for (let index = 0; index < 64; index += 1) {
@@ -505,23 +591,28 @@
     function selectTab(tab) {
       const isDesign = tab === "design";
       const isManage = tab === "manage";
+      const isEdit = tab === "edit";
       const isCreate = tab === "create";
       testTab.setAttribute("aria-selected", String(tab === "test"));
       designTab.setAttribute("aria-selected", String(isDesign));
       manageTab.setAttribute("aria-selected", String(isManage));
+      editTab.setAttribute("aria-selected", String(isEdit));
       createTab.setAttribute("aria-selected", String(isCreate));
       testPanel.hidden = tab !== "test";
       designPanel.hidden = !isDesign;
       managePanel.hidden = !isManage;
+      editPanel.hidden = !isEdit;
       createPanel.hidden = !isCreate;
       if (isDesign && availableAliases.length === 0) loadDesignAliases();
       if (isManage && managementCharacters.length === 0) loadManagementCharacters();
+      if (isEdit) loadEditCharacters();
       if (isCreate && createAliases.length === 0) loadCreateAliases();
     }
 
     testTab.addEventListener("click", () => selectTab("test"));
     designTab.addEventListener("click", () => selectTab("design"));
     manageTab.addEventListener("click", () => selectTab("manage"));
+    editTab.addEventListener("click", () => selectTab("edit"));
     createTab.addEventListener("click", () => selectTab("create"));
 
     function fillSelect(select, items, labelFor, selectedValue = "") {
@@ -629,6 +720,301 @@
         moveAliasButton.disabled = false;
       }
     }
+
+    function setEditMessage(message, kind = "") {
+      editCharacterMeta.textContent = message;
+      editCharacterMeta.dataset.kind = kind;
+    }
+
+    function rebuildEditOptions() {
+      const options = [];
+      for (const item of managementCharacters) {
+        options.push({ value: item.char, label: `${item.name} · char chính` });
+        options.push({ value: item.name, label: `${item.char} · tên hiển thị` });
+        for (const alias of item.aliases || []) {
+          options.push({ value: alias, label: `${item.name} · alias của ${item.char}` });
+        }
+      }
+      editCharacterOptions.replaceChildren(...options.map((item) => {
+        const option = document.createElement("option");
+        option.value = item.value;
+        option.label = item.label;
+        return option;
+      }));
+    }
+
+    function resolveEditCharacter(value) {
+      const query = value.trim().toLocaleLowerCase();
+      if (!query) return null;
+      return managementCharacters.find((item) =>
+        item.char.toLocaleLowerCase() === query
+        || item.name.toLocaleLowerCase() === query
+        || (item.aliases || []).some((alias) => alias.toLocaleLowerCase() === query)
+      ) || null;
+    }
+
+    function showEditCharacter(item, searchedValue = editCharacterSearch.value) {
+      editingCharacter = item;
+      editingViaAlias = null;
+      editCharacterFields.hidden = !item;
+      if (!item) {
+        editResolvedHint.textContent = "Không tìm thấy key, tên hoặc alias khớp chính xác.";
+        editAliasTransfer.hidden = true;
+        return;
+      }
+      const normalizedSearch = searchedValue.trim().toLocaleLowerCase();
+      editingViaAlias = (item.aliases || []).find(
+        (alias) => alias.toLocaleLowerCase() === normalizedSearch
+      ) || null;
+      document.querySelector("#editCharKey").value = item.char;
+      document.querySelector("#editCharName").value = item.name;
+      document.querySelector("#editCharLanguage").value = item.language;
+      document.querySelector("#editCharSpeed").value = item.speed;
+      document.querySelector("#editCharEnabled").checked = item.enabled;
+      document.querySelector("#editCharRefText").value = item.ref_text;
+      document.querySelector("#editCharAliases").value = (item.aliases || []).join("\n");
+      document.querySelector("#editCharParameters").value = JSON.stringify(item.parameters || {}, null, 2);
+      document.querySelector("#editRefAudio").textContent = `Audio hiện tại: ${item.ref_audio}`;
+      document.querySelector("#editAliasCount").textContent = `${(item.aliases || []).length} alias`;
+      editResolvedHint.textContent = editingViaAlias
+        ? `Alias ${editingViaAlias} đang thuộc char chính ${item.char}.`
+        : `Đang chỉnh char chính: ${item.char}`;
+      editAliasTransfer.hidden = !editingViaAlias;
+      if (editingViaAlias) {
+        editSelectedAlias.textContent = editingViaAlias;
+        const targets = managementCharacters.filter(
+          (candidate) => candidate.enabled && candidate.char !== item.char
+        );
+        fillSelect(
+          editAliasTarget,
+          targets,
+          (candidate) => `${candidate.name} · ${candidate.char} (${candidate.aliases.length} alias)`,
+          editAliasTarget.value,
+        );
+        moveSelectedAlias.disabled = targets.length === 0;
+      }
+      setEditMessage(`Đã tải ${item.name} · speed ${item.speed}.`);
+    }
+
+    async function loadEditCharacters(preferredChar = editingCharacter?.char || "") {
+      reloadEditCharacters.disabled = true;
+      try {
+        const response = await fetch("/api/characters/manage", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        managementCharacters = data.characters || [];
+        rebuildEditOptions();
+        const item = managementCharacters.find((candidate) => candidate.char === preferredChar);
+        if (item) {
+          editCharacterSearch.value = item.char;
+          showEditCharacter(item, item.char);
+        } else if (!editingCharacter) {
+          editResolvedHint.textContent = `${managementCharacters.length} char chính · có thể tìm bằng alias.`;
+        }
+      } catch (error) {
+        setEditMessage(error.message, "error");
+      } finally {
+        reloadEditCharacters.disabled = false;
+      }
+    }
+
+    function buildEditPayload(includePreview = false) {
+      if (!editingCharacter) throw new Error("Hãy chọn một char chính trước.");
+      const aliases = document.querySelector("#editCharAliases").value
+        .split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+      if (new Set(aliases).size !== aliases.length) throw new Error("Danh sách alias bị trùng.");
+      let parameters;
+      try {
+        parameters = JSON.parse(document.querySelector("#editCharParameters").value.trim() || "{}");
+      } catch {
+        throw new Error("Parameters không phải JSON hợp lệ.");
+      }
+      if (!parameters || Array.isArray(parameters) || typeof parameters !== "object") {
+        throw new Error("Parameters phải là một JSON object.");
+      }
+      const payload = {
+        name: document.querySelector("#editCharName").value.trim(),
+        ref_text: document.querySelector("#editCharRefText").value.trim(),
+        language: document.querySelector("#editCharLanguage").value.trim(),
+        enabled: document.querySelector("#editCharEnabled").checked,
+        speed: Number(document.querySelector("#editCharSpeed").value),
+        parameters,
+        aliases,
+      };
+      if (!payload.name || !payload.ref_text || !payload.language || !Number.isFinite(payload.speed) || payload.speed <= 0) {
+        throw new Error("Tên, ref_text, language và speed phải hợp lệ.");
+      }
+      if (includePreview) {
+        payload.preview_text = document.querySelector("#editPreviewText").value.trim();
+        if (!payload.preview_text) throw new Error("Câu nghe thử không được để trống.");
+      }
+      return payload;
+    }
+
+    editCharacterSearch.addEventListener("change", () => showEditCharacter(resolveEditCharacter(editCharacterSearch.value), editCharacterSearch.value));
+    editCharacterSearch.addEventListener("input", () => {
+      const exact = resolveEditCharacter(editCharacterSearch.value);
+      if (exact) showEditCharacter(exact, editCharacterSearch.value);
+    });
+    reloadEditCharacters.addEventListener("click", () => loadEditCharacters());
+    document.querySelector("#editCharAliases").addEventListener("input", (event) => {
+      const count = event.target.value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean).length;
+      document.querySelector("#editAliasCount").textContent = `${count} alias`;
+    });
+
+    checkCharacterIntegrity.addEventListener("click", async () => {
+      checkCharacterIntegrity.disabled = true;
+      characterIntegrityReport.hidden = false;
+      characterIntegrityReport.textContent = "Đang đọc characters.json và các bản backup…";
+      try {
+        const response = await fetch("/api/characters/integrity", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        if (data.status === "no_backups") {
+          characterIntegrityReport.textContent = "Không tìm thấy file characters.backup*.json để so sánh.";
+          return;
+        }
+        const lines = [
+          `Trạng thái: ${data.status === "ok" ? "OK — không phát hiện mã bị mất" : "CẢNH BÁO"}`,
+          `Backup đã đọc: ${data.backup_count}`,
+          `Backup gần nhất: ${data.latest_backup}`,
+          `Hiện tại: ${data.current.characters} char chính + ${data.current.aliases} alias = ${data.current.identifiers} mã`,
+          `Backup gần nhất: ${data.latest.characters} char chính + ${data.latest.aliases} alias = ${data.latest.identifiers} mã`,
+          "",
+          `Mất so với backup gần nhất (${data.missing_from_latest.length}): ${data.missing_from_latest.join(", ") || "không có"}`,
+          `Mã mới so với backup gần nhất (${data.new_since_latest.length}): ${data.new_since_latest.join(", ") || "không có"}`,
+          `Từng tồn tại trong backup nhưng hiện mất hoàn toàn (${data.missing_historical.length}): ${data.missing_historical.join(", ") || "không có"}`,
+          `Alias đã chuyển chủ (${data.moved_aliases.length}):`,
+          ...(data.moved_aliases.length
+            ? data.moved_aliases.map((item) => `  ${item.alias}: ${item.from} → ${item.to}`)
+            : ["  không có"]),
+          `Char chính chuyển thành alias (${data.canonical_to_alias.length}):`,
+          ...(data.canonical_to_alias.length
+            ? data.canonical_to_alias.map((item) => `  ${item.id} → alias của ${item.owner}`)
+            : ["  không có"]),
+          `Alias chuyển thành char chính (${data.alias_to_canonical.length}):`,
+          ...(data.alias_to_canonical.length
+            ? data.alias_to_canonical.map((item) => `  ${item.id} (trước thuộc ${item.previous_owner})`)
+            : ["  không có"]),
+          `Backup lỗi/không đọc được (${data.invalid_backups.length}):`,
+          ...(data.invalid_backups.length
+            ? data.invalid_backups.map((item) => `  ${item.file}: ${item.error}`)
+            : ["  không có"]),
+        ];
+        characterIntegrityReport.textContent = lines.join("\n");
+        setEditMessage(
+          data.status === "ok" ? "Kiểm tra toàn vẹn hoàn tất, không phát hiện mã bị mất." : "Phát hiện chênh lệch; xem báo cáo bên dưới.",
+          data.status === "ok" ? "success" : "error",
+        );
+      } catch (error) {
+        characterIntegrityReport.textContent = error.message;
+        setEditMessage(error.message, "error");
+      } finally {
+        checkCharacterIntegrity.disabled = false;
+      }
+    });
+
+    moveSelectedAlias.addEventListener("click", async () => {
+      if (!editingCharacter || !editingViaAlias) return;
+      const sourceChar = editingCharacter.char;
+      const alias = editingViaAlias;
+      const targetChar = editAliasTarget.value;
+      if (!targetChar || targetChar === sourceChar) {
+        setEditMessage("Hãy chọn một char chính đích khác char hiện tại.", "error");
+        return;
+      }
+      moveSelectedAlias.disabled = true;
+      setEditMessage(`Đang chuyển alias ${alias} từ ${sourceChar} sang ${targetChar}…`);
+      try {
+        const response = await fetch("/api/characters/aliases/move", {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            source_char: sourceChar,
+            target_char: targetChar,
+            aliases: [alias],
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        editingCharacter = null;
+        editingViaAlias = null;
+        editCharacterSearch.value = alias;
+        await loadEditCharacters(targetChar);
+        editCharacterSearch.value = alias;
+        showEditCharacter(resolveEditCharacter(alias), alias);
+        await loadCharacters();
+        createAliases = [];
+        availableAliases = [];
+        setEditMessage(`Đã chuyển alias ${alias}: ${sourceChar} → ${targetChar}. Alias sẽ dùng giọng và speed của char mới.`, "success");
+        showToast(`Đã chuyển ${alias} sang ${targetChar}`);
+      } catch (error) {
+        setEditMessage(error.message, "error");
+      } finally {
+        moveSelectedAlias.disabled = false;
+      }
+    });
+
+    editPreviewButton.addEventListener("click", async () => {
+      let payload;
+      try { payload = buildEditPayload(true); }
+      catch (error) { setEditMessage(error.message, "error"); return; }
+      editPreviewButton.disabled = true;
+      setEditMessage("Đang tạo preview bằng cấu hình chưa lưu…");
+      try {
+        const response = await fetch(`/api/characters/${encodeURIComponent(editingCharacter.char)}/preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.detail || `HTTP ${response.status}`);
+        }
+        const blob = await response.blob();
+        if (editPreviewUrl) URL.revokeObjectURL(editPreviewUrl);
+        editPreviewUrl = URL.createObjectURL(blob);
+        editPreviewPlayer.src = editPreviewUrl;
+        editPreviewPlayer.hidden = false;
+        document.querySelector("#editPreviewEmpty").hidden = true;
+        setEditMessage(`Preview sẵn sàng · speed ${payload.speed} · chưa lưu JSON.`, "success");
+        editPreviewPlayer.play().catch(() => {});
+      } catch (error) {
+        setEditMessage(error.message, "error");
+      } finally {
+        editPreviewButton.disabled = false;
+      }
+    });
+
+    editCharacterForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!editCharacterForm.reportValidity()) return;
+      let payload;
+      try { payload = buildEditPayload(false); }
+      catch (error) { setEditMessage(error.message, "error"); return; }
+      const charId = editingCharacter.char;
+      editSaveButton.disabled = true;
+      setEditMessage("Đang kiểm tra, backup và lưu characters.json…");
+      try {
+        const response = await fetch(`/api/characters/${encodeURIComponent(charId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+        showToast(`Đã cập nhật ${charId}`);
+        await loadEditCharacters(charId);
+        await loadCharacters();
+        createAliases = [];
+        availableAliases = [];
+        setEditMessage(`Đã lưu ${charId} · speed ${data.speed} · backup ${data.backup}.`, "success");
+      } catch (error) {
+        setEditMessage(error.message, "error");
+      } finally {
+        editSaveButton.disabled = false;
+      }
+    });
 
     aliasSourceChar.addEventListener("change", renderSourceAliases);
     aliasTargetChar.addEventListener("change", renderTargetAliases);

@@ -317,6 +317,12 @@ Endpoints nội bộ của tab gồm `POST /api/characters/create/preview` (mult
 
 Tab **Quản lý alias** cho phép chọn char nguồn, đánh dấu một hoặc nhiều alias bằng checkbox (có nút chọn/bỏ chọn tất cả), rồi chọn char đích. Nhấn **Chuyển alias và lưu JSON** để cập nhật `characters.json`; server xác thực toàn bộ danh sách và nạp cấu hình mới nguyên tử, không tải lại model. Nếu một alias không hợp lệ thì cả nhóm không được lưu. Char chính không bị đổi, chỉ quyền sở hữu alias thay đổi. Char đích phải đang được bật.
 
+Tab **Chỉnh sửa nhân vật** cho phép tìm char chính bằng key, tên hiển thị hoặc bất kỳ alias nào đang thuộc char đó. Có thể sửa tên, `ref_text`, language, `speed`, `enabled`, `parameters` và danh sách alias. Nút **Nghe thử** dùng ngay cấu hình đang nhập nhưng chưa ghi JSON. Khi nhấn lưu, server tạo `characters.backup-edit-*.json`, xác thực toàn bộ cấu hình, thay file nguyên tử và reload danh sách nhân vật mà không tải lại model.
+
+Nếu mở nhân vật bằng một alias, tab sẽ hiện mục **Chuyển alias sang giọng khác**. Chọn char chính đích trong dropdown rồi lưu; alias được gỡ khỏi char hiện tại và chuyển sang char đích, sau đó tự sử dụng audio, `ref_text`, speed và parameters của char mới. Key của các char chính không bị thay đổi.
+
+Nút **Kiểm tra mất nhân vật / alias** so sánh `characters.json` với backup gần nhất và toàn bộ file `characters.backup*.json`. Báo cáo phân biệt mã mất hoàn toàn, mã mới, alias đã chuyển chủ, char chính/alias đổi loại và backup bị lỗi. Việc một alias chỉ chuyển sang char khác không bị báo nhầm là mất.
+
 Các endpoint giao diện sử dụng là `GET /api/characters/manage` và `POST /api/characters/aliases/move` với JSON gồm `source_char`, `aliases` (mảng), `target_char`. Endpoint quản lý này dành cho giao diện cục bộ, không cần gọi từ client game.
 
 ## 10. Cache

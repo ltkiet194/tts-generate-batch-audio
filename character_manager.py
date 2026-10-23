@@ -9,6 +9,7 @@ import re
 import shutil
 import tempfile
 import threading
+from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -192,6 +193,14 @@ class CharacterManager:
             raise CharacterDisabledError(char_id)
         return character
 
+    def get_canonical(self, char_id: str) -> Character:
+        """Return only a canonical character; aliases are intentionally rejected."""
+        with self._lock:
+            character = self._characters.get(char_id)
+        if character is None:
+            raise CharacterNotFoundError(char_id)
+        return character
+
     def resolve(self, char_id: str, default_id: str = "default") -> tuple[Character, bool]:
         """Resolve an ID/alias, falling back for unknown or disabled characters."""
         try:
@@ -227,9 +236,107 @@ class CharacterManager:
                 "enabled": item.enabled,
                 "aliases": list(item.aliases),
                 "speed": item.speed,
+                "ref_text": item.ref_text,
+                "language": item.language,
+                "parameters": dict(item.parameters),
+                "ref_audio": item.ref_audio.relative_to(self._base_dir).as_posix(),
             }
             for item in snapshot
         ]
+
+    def update_character(
+        self,
+        *,
+        char_id: str,
+        name: str,
+        ref_text: str,
+        language: str,
+        enabled: bool,
+        speed: float,
+        parameters: dict[str, Any],
+        aliases: list[str],
+        required_default_id: str,
+    ) -> tuple[Character, Path]:
+        """Atomically update editable fields while preserving the canonical ID/audio."""
+        char_id = char_id.strip()
+        name, ref_text, language = name.strip(), ref_text.strip(), language.strip()
+        aliases = [alias.strip() for alias in aliases]
+        try:
+            speed_value = float(speed)
+        except (TypeError, ValueError, OverflowError):
+            speed_value = math.nan
+        if not name or not ref_text or not language:
+            raise CharacterConfigError("Tên, ref_text và language không được để trống.")
+        if not isinstance(enabled, bool):
+            raise CharacterConfigError("enabled phải là true hoặc false.")
+        if isinstance(speed, bool) or not math.isfinite(speed_value) or speed_value <= 0:
+            raise CharacterConfigError("speed phải là số hữu hạn lớn hơn 0.")
+        if not isinstance(parameters, dict):
+            raise CharacterConfigError("parameters phải là một object JSON.")
+        if any(not alias for alias in aliases) or len(set(aliases)) != len(aliases):
+            raise CharacterConfigError("Danh sách alias có giá trị rỗng hoặc trùng lặp.")
+        if char_id in aliases:
+            raise CharacterConfigError("Alias không được trùng với mã char chính.")
+
+        with self._lock:
+            if char_id not in self._characters:
+                raise CharacterNotFoundError(char_id)
+            try:
+                data = json.loads(self._config_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                raise CharacterConfigError(f"Không đọc được characters.json: {exc}") from exc
+            raw_characters = data.get("characters") if isinstance(data, dict) else None
+            entry = raw_characters.get(char_id) if isinstance(raw_characters, dict) else None
+            if not isinstance(entry, dict):
+                raise CharacterConfigError(f"Không tìm thấy cấu hình char chính '{char_id}'.")
+
+            entry.update(
+                name=name,
+                ref_text=ref_text,
+                language=language,
+                enabled=enabled,
+                speed=speed_value,
+                parameters=parameters,
+            )
+            if aliases:
+                entry["aliases"] = aliases
+            else:
+                entry.pop("aliases", None)
+
+            fd, staged_name = tempfile.mkstemp(
+                prefix=f".{self._config_path.name}-", suffix=".tmp", dir=self._config_path.parent
+            )
+            os.close(fd)
+            staged = Path(staged_name)
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+            backup = self._config_path.with_name(f"characters.backup-edit-{timestamp}.json")
+            original = self._config_path.read_bytes()
+            replaced = False
+            try:
+                staged.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                candidate = CharacterManager(staged, self._base_dir)
+                candidate.load(required_default_id=required_default_id)
+                shutil.copy2(self._config_path, backup)
+                os.replace(staged, self._config_path)
+                replaced = True
+                self.load(required_default_id=required_default_id)
+            except Exception:
+                if replaced:
+                    restore_fd, restore_name = tempfile.mkstemp(
+                        prefix=f".{self._config_path.name}-restore-", suffix=".tmp", dir=self._config_path.parent
+                    )
+                    os.close(restore_fd)
+                    restore = Path(restore_name)
+                    try:
+                        restore.write_bytes(original)
+                        os.replace(restore, self._config_path)
+                        self.load(required_default_id=required_default_id)
+                    finally:
+                        restore.unlink(missing_ok=True)
+                raise
+            finally:
+                staged.unlink(missing_ok=True)
+            return self._characters[char_id], backup
 
     def move_aliases(
         self,

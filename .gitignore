@@ -7,7 +7,7 @@ __pycache__/
 cache/*.wav
 output/*.wav
 output/**/*.wav
-audio/*.wav
+
 !audio/.gitkeep
 !cache/.gitkeep
 !output/.gitkeep

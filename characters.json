@@ -5,7 +5,7 @@
       "ref_audio": "audio/vu_van_dat.wav",
       "ref_text": "Mắt nhìn. Sư phụ bảo tối nghe hắn ta luyện khí công, cái gì mà thần ngưng đan điền, tức du tử phủ",
       "language": "Vietnamese",
-      "enabled": true,
+      "enabled": false,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -27,15 +27,12 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
-        "au_duong_hai",
         "bat_luong_kim",
         "chu_ngu_ca",
         "dao_thu_thao_khau",
         "de_tu_phich_lich_mon",
-        "doan_trieu_than",
         "ha_son",
         "hai_thuong_trieu_luan",
-        "khong_luong",
         "lao_au",
         "lao_trieu",
         "linh_a",
@@ -44,7 +41,6 @@
         "mao_nhan",
         "nguoi_ban_duoc_lieu",
         "nguoi_lam",
-        "phap_diet_tan",
         "sang_kiet",
         "te_duc_long",
         "tho_may_truong_thai_chuc",
@@ -58,7 +54,8 @@
         "tuong_tieu_dau",
         "ve_binh_phan_thanh",
         "vuong_huu_tai"
-      ]
+      ],
+      "speed": 1.2
     },
     "thanh_hu_dao_truong": {
       "name": "Thanh Hư Đạo Trưởng",
@@ -77,7 +74,6 @@
         "lac_vien_ngoai",
         "lang_trung_nguy_lao",
         "lao_lai_do_dam_u_van",
-        "ngoc_hoa_dao_truong",
         "nguoi_ke_chuyen",
         "nguyen_chan",
         "nguyen_hu",
@@ -132,10 +128,8 @@
         "dao_vi",
         "de_tu_thien_kiem_tong",
         "dieu_dien_su_ly_hoai_hi",
-        "gia_ma",
         "hach_lien_phu_bat",
         "hoan_vuong",
-        "kinh_loi_su",
         "long_dinh_thien",
         "ly_duong_quy",
         "mao_nhan_dau_mau_thu",
@@ -156,7 +150,10 @@
         "truong_thon_nam_du_thon",
         "tue_dat",
         "ve_binh_thien_thuy",
-        "vuong_tam_phao"
+        "vuong_tam_phao",
+        "ta_giang_long",
+        "phap_diet_tan",
+        "mo_ngai"
       ],
       "ref_text": "Đó là bảo vật trấn giáo của Nhật Nguyệt thần giáo ta, chỉ có làm giáo chủ rồi mới có thể có được nó.",
       "language": "Vietnamese",
@@ -182,7 +179,8 @@
         "pace_words_per_second": 4.29,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.1
     },
     "du_thuong_hai": {
       "name": "Dư Thương Hải",
@@ -190,19 +188,15 @@
       "aliases": [
         "ac_han",
         "bach_vo_ngon",
-        "chu_ba_tran_tu",
         "cuong_hoa_huyen_hoa_mat_ve",
         "de_tu_ac_nhan_coc",
-        "dong_an",
         "gia_nhan_nha_ho_vuong",
         "ham_khich_duc",
         "huyen_hoa_mat_ve",
         "lai_suu_suu",
         "luc_quac",
         "ly_nhi_ho",
-        "mo_tri",
         "nguoi_ao_den",
-        "nguyen_phong",
         "nhi_thinh_no",
         "npc_du_thuong_hai",
         "son_tac",
@@ -215,11 +209,12 @@
         "tran_bo_dau",
         "trieu_thua_vong",
         "tro_ung",
-        "truong_lao_ngu_tien_giao_vu_ngu",
         "tu_si_am_duong_ty",
-        "vien_ngo",
         "vuong_thiet_dam",
-        "xich_ung"
+        "xich_ung",
+        "diep_phi",
+        "long_sang_kiet",
+        "hong_phi"
       ],
       "ref_text": "Ông luôn miệng nói nó là đệ tử của ông, ông vốn chẳng có ý tốt gì",
       "language": "Vietnamese",
@@ -245,7 +240,8 @@
         "pace_words_per_second": 5.86,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 0.9
     },
     "moc_cao_phong": {
       "name": "Mộc Cao Phong",
@@ -264,9 +260,7 @@
         "lieu_ma_y",
         "luu_hung",
         "ly_rau",
-        "mac_khi",
         "ngoc_ba",
-        "nguyen_minh",
         "nguyen_xung",
         "npc_moc_cao_phong",
         "quai_y_chu_hung",
@@ -282,7 +276,8 @@
         "tu_dai_ac_nhan_bao_man",
         "vo_anh_chung",
         "vuong_sinh",
-        "y_kien_duc"
+        "y_kien_duc",
+        "au_duong_hanh"
       ],
       "ref_text": "không phải ngươi muốn báo thù sao ngươi đã bái ta làm sư rồi",
       "language": "Vietnamese",
@@ -308,13 +303,13 @@
         "pace_words_per_second": 4.65,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 0.9
     },
     "dien_ba_quang": {
       "name": "Diên Ba Quang",
       "ref_audio": "audio/dien_ba_quang.wav",
       "aliases": [
-        "an_vo_cang",
         "bach_nhi_gia",
         "cao_thu_giang_ho",
         "da_thu",
@@ -345,7 +340,12 @@
         "truong_tieu_phu",
         "tuong_quang_chi",
         "vo_anh_kiem_luc_doan",
-        "xa_bo_dung_si"
+        "xa_bo_dung_si",
+        "bach_cam",
+        "mac_khi",
+        "nguyen_phong",
+        "kinh_loi_su",
+        "kinh_loi_am_su"
       ],
       "ref_text": "Tiểu tử kia, bày trăm phương ngàn kế chẳng qua là muốn kêu ta tha cho tiểu ni cô này thôi.",
       "language": "Vietnamese",
@@ -371,16 +371,15 @@
         "pace_words_per_second": 3.83,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.2
     },
     "lam_binh_chi": {
       "name": "Lâm Bình Chi",
       "ref_audio": "audio/lam_binh_chi.wav",
       "aliases": [
         "ac_na_tra_ly_da",
-        "bach_duy_nhat",
         "bu_nong",
-        "co_tu_quy",
         "de_tu_am_duong_ty",
         "dich_an",
         "duong_vinh_minh",
@@ -391,7 +390,6 @@
         "ly_cau_thang",
         "ly_sinh",
         "ngo_van_hoa",
-        "ngu_tien_giao_truong_lao_vu_ngu",
         "nguyen_khai",
         "nguyen_than",
         "npc_lam_binh_chi",
@@ -407,7 +405,8 @@
         "truong_tho_san",
         "truong_tu_tai",
         "tuy_tung_de_tu",
-        "vuong_phuc"
+        "vuong_phuc",
+        "au_duong_hai"
       ],
       "ref_text": "Lúc nãy ông thấy chết mà không cứu, lúc nãy ông đã không thấy chết không buông tay",
       "language": "Vietnamese",
@@ -433,7 +432,8 @@
         "pace_words_per_second": 4.71,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 0.9
     },
     "nhac_su_nuong": {
       "name": "Nhạc Sư Nương",
@@ -524,7 +524,8 @@
         "pace_words_per_second": 3.64,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.2
     },
     "nghi_lam_su_muoi": {
       "name": "Nghi Lâm Sư Muội",
@@ -535,7 +536,6 @@
         "do_lan",
         "khinh_hong",
         "lac_nhan",
-        "lien_tam",
         "ly_thu_nguyet",
         "nguy_tieu_muoi",
         "npc_nghi_lam_su_muoi",
@@ -586,7 +586,8 @@
         "tran_tieu_thu",
         "van_hoa_hong",
         "vu_van",
-        "xich_long_nu"
+        "xich_long_nu",
+        "hong_y_thieu_nu"
       ],
       "ref_audio": "audio/dao_co.wav",
       "ref_text": "Ta cứ tưởng là hành vi quân tử gì, thì ra không phải ăn cướp, mà là trộm.",
@@ -613,7 +614,8 @@
         "pace_words_per_second": 3.38,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.2
     },
     "doanh_doanh_nho": {
       "name": "Doanh Doanh Nhỏ",
@@ -622,7 +624,6 @@
         "au_duong_tieu_vu",
         "co_be",
         "giang_tieu_dong",
-        "hong_y_thieu_nu",
         "khong_tam_dan",
         "khong_tu_nha",
         "lai_ngoan_nhi",
@@ -664,7 +665,6 @@
       "ref_audio": "audio/trieu_man.wav",
       "aliases": [
         "diep_ngan_binh",
-        "doan_ly_suong",
         "lanh_nguyet",
         "loan_quynh",
         "luu_dieu_nu",
@@ -713,7 +713,6 @@
         "bao_dai_phu",
         "chuong_quay_uong_thai",
         "dao_dieu",
-        "dich_toi_tang",
         "gia_luat_hanh",
         "hac_y_thien_su",
         "ho_vien_nha_ho_vuong",
@@ -739,12 +738,13 @@
         "trinh_chuong_quy",
         "truong_lang_trai_a_long",
         "van_ba_tang",
-        "vien_giac"
+        "vien_giac",
+        "vien_ngo"
       ],
       "ref_text": "Thiện tai, Thiện tai! Ngươi nhận ta làm sư phụ, vẫn tên là tạ tốn",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.3,
+      "speed": 1.4,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -782,7 +782,6 @@
         "hai_khau",
         "hai_tac",
         "kho_tuc_kien",
-        "kinh_loi_am_su",
         "lao_tieu",
         "loi_luyen",
         "luu_tho_may",
@@ -803,7 +802,8 @@
         "tu_ma_tuong",
         "tuyet_vo_tam",
         "vuong_dai_chuy",
-        "vuu_nghich_nan"
+        "vuu_nghich_nan",
+        "ngoc_hoa_dao_truong"
       ],
       "ref_text": "Chờ đã ! Chỗ chúng ta là nơi các ngươi có thể nói tới là tới, nói đi là đi hay sao?",
       "language": "Vietnamese",
@@ -827,25 +827,26 @@
         "pace_words_per_second": 3.66,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.3
     },
     "hoang_sam_nu": {
       "name": "Hoàng Sam Nữ",
       "ref_audio": "audio/hoang_sam_nu.wav",
       "aliases": [
-        "au_duong_kiem_anh",
         "de_tu_ngu_tien_giao",
         "huyen_nu",
         "huyen_tu",
         "lam_khong_tuoc",
         "lu_kieu",
         "mac_ly",
-        "nha_co",
         "so_dai_huyen_nu",
         "thanh_van_chu_nhan",
         "tieu_diep",
         "tieu_quynh",
-        "tu_lan"
+        "thuong_dinh_tru",
+        "tu_lan",
+        "doan_trieu_than"
       ],
       "ref_text": "Trương giáo chủ có biết một đao một kiếm này, từ đâu mà có không?",
       "language": "Vietnamese",
@@ -872,7 +873,8 @@
         "pace_words_per_second": 3.17,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.2
     },
     "ta_ton": {
       "name": "Tả Tốn",
@@ -908,7 +910,9 @@
         "tru_vo_cuu",
         "truong_thon_thanh_ha",
         "tuong_linh_ninh_quoc",
-        "vuong_ba_thien"
+        "vuong_ba_thien",
+        "an_vo_cang",
+        "mo_tri"
       ],
       "ref_text": "còn vị Chu cô nương này, vô tình vô nghĩa, rồi cũng sẽ có ngày nhận quả báo. Xin cô nương hôm nay, tạm tha cho cô ấy",
       "language": "Vietnamese",
@@ -934,7 +938,8 @@
         "pace_words_per_second": 3.58,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.2
     },
     "diet_tuyet_su_thai": {
       "name": "Diệt Tuyết Sư Thái",
@@ -976,7 +981,8 @@
         "pace_words_per_second": 3.19,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 1.1
     },
     "an_thu_nhi": {
       "name": "Ân Thù Nhi",
@@ -985,17 +991,19 @@
         "bo_vi_nguyet",
         "chuong_su_trac_ngoc_lau",
         "hua_tam_nuong",
-        "huyen_ly",
         "khuc_kieu_kieu",
         "lu_tien_nhi",
         "mao_han",
         "na_o",
         "phi_hiet_su_na_o",
+        "phi_hat_su_na_o",
         "thoi_tieu_thu",
         "tien_luc_tham",
         "tieu_vu",
         "vu_ngu",
-        "yuoc_co"
+        "yuoc_co",
+        "truong_lao_ngu_tien_giao_vu_ngu",
+        "ngu_tien_giao_truong_lao_vu_ngu"
       ],
       "ref_text": "Bởi vì đánh ngươi làm ta vui. Ta càng vui sẽ càng đánh ngươi thì vết thương sẽ đở.",
       "language": "Vietnamese",
@@ -1021,7 +1029,8 @@
         "pace_words_per_second": 4.37,
         "pace": "fast",
         "analysis_method": "name_role_and_reference_audio_v1"
-      }
+      },
+      "speed": 0.9
     },
     "truong_vo_ky": {
       "name": "Trương Vô Kỵ",
@@ -1032,14 +1041,11 @@
         "chu_luong",
         "danh_kiem_son_trang_de_tu",
         "de_tu_binh_duong_bao",
-        "diep_phi",
         "giang_ho_hiep_si",
         "hai_tac_tinh_nhue",
         "hai_thuong_loi_hung",
-        "hong_phi",
         "lanh_vo_tinh",
         "lao_tran",
-        "long_sang_kiet",
         "luu_huyen",
         "ly_pham",
         "nghiem_xuyen",
@@ -1110,7 +1116,10 @@
         "pace": "medium",
         "analysis_method": "name_role_and_reference_audio_v1"
       },
-      "aliases": []
+      "aliases": [
+        "doan_ly_suong"
+      ],
+      "speed": 1.2
     },
     "trien_chieu": {
       "name": "Triển Chiêu",
@@ -1118,7 +1127,7 @@
       "ref_text": "Mục đích hôm nay tới đây, chắc hẳn Trang chủ đã hiểu rồi. Triển Mỗ không thù không quán với ngũ thử",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.01,
+      "speed": 1.2,
       "parameters": {},
       "aliases": [
         "ba_dao_tan_liet",
@@ -1142,7 +1151,6 @@
         "su_van_long",
         "than_bi_khach",
         "tho_ren_dai_chuy",
-        "thuong_dinh_tru",
         "thuyen_phu",
         "tien_mau",
         "ton_dai_dam",
@@ -1151,7 +1159,11 @@
         "tu_truong_lao",
         "tue_nguyen",
         "ve_hoac",
-        "vuong_thach_dau"
+        "vuong_thach_dau",
+        "co_tu_quy",
+        "lien_tam",
+        "chu_ba_tran_tu",
+        "nguyen_minh"
       ],
       "voice_profile": {
         "gender": "male",
@@ -1212,7 +1224,8 @@
         "truong_dai_thu",
         "truong_thon_thuong_lam_thon",
         "ve_si_nha_ho_lu",
-        "vuong_thanh"
+        "vuong_thanh",
+        "thang_thong"
       ],
       "voice_profile": {
         "gender": "male",
@@ -1263,7 +1276,6 @@
       },
       "aliases": [
         "a_co",
-        "bach_cam",
         "bao_man",
         "chu_ke",
         "da_khoc_quy",
@@ -1302,7 +1314,7 @@
       "ref_text": "Nếu như bát dương gia muốn che giấu chuyện này tại sao trần tổng quản bảy năm sau đó",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.0,
+      "speed": 1.2,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -1324,6 +1336,7 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
+        "dich_toi_tang",
         "au_duong_mau_tai",
         "binh_linh_nuoc_uyen",
         "co_thanh_phi",
@@ -1408,7 +1421,7 @@
       "ref_text": "Người lén la lén lúc như vậy có phải làm chuyện gì sai trái rồi không",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.0,
+      "speed": 1.1,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -1450,8 +1463,6 @@
         "te_lao_han",
         "than_toan_tu",
         "thieu_nien_hiep_khach",
-        "thuong_quan_vu",
-        "tran_lan_hi",
         "tran_lao_dau",
         "trinh_bach_tai",
         "trinh_quan_gia",
@@ -1459,7 +1470,9 @@
         "truong_thon_lang_nuoc_dang",
         "truong_thon_song_ha",
         "truong_thon_thien_minh",
-        "vuong_dao_minh"
+        "vuong_dao_minh",
+        "dong_an",
+        "gia_ma"
       ]
     },
     "ly_nuong_nuong": {
@@ -1468,7 +1481,7 @@
       "ref_text": "Gần như a gia đã quên sửa soạn gọn gàng sạch sẽ là dáng vẻ gì rồi",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.0,
+      "speed": 1.4,
       "parameters": {},
       "voice_profile": {
         "gender": "female",
@@ -1502,7 +1515,10 @@
         "tho_may_kim_thi",
         "tran_thi",
         "trieu_dai_nuong",
-        "vuong_nhi_ty"
+        "vuong_nhi_ty",
+        "tuan_dieu_dieu",
+        "thuong_quan_vu",
+        "nha_co"
       ]
     },
     "truong_long_bao_cong": {
@@ -1546,12 +1562,10 @@
         "linh_kiem_tien_vien",
         "luc_phien_mon_thiet_ve",
         "ly_kim_chung",
-        "mo_ngai",
         "nguoi_ban_vai",
         "nguyen_te",
         "pho_tong_tieu_dau",
         "phu_vac",
-        "ta_giang_long",
         "than_bo_luc_phien_mon",
         "thiet_dan",
         "thuong_nhan_dong_duong",
@@ -1563,7 +1577,9 @@
         "tue_tin",
         "vien_kho",
         "vuong_thien_thong",
-        "vuu_tieu_dau"
+        "vuu_tieu_dau",
+        "au_duong_kiem_anh",
+        "huyen_ly"
       ]
     },
     "duong_trieu_bao_cong": {
@@ -1594,7 +1610,6 @@
         "analysis_method": "name_role_and_reference_audio_v1"
       },
       "aliases": [
-        "au_duong_hanh",
         "binh_linh_ninh_quoc",
         "chu_tu",
         "danh_kiem_son_trang_lu_khinh_ky",
@@ -1634,7 +1649,7 @@
       "ref_text": "Hiện giờ còn có rất nhiều người đang chờ kiện cáo",
       "language": "Vietnamese",
       "enabled": true,
-      "speed": 1.0,
+      "speed": 1.2,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -1688,7 +1703,8 @@
         "uyen_quan_dau_muc",
         "uyen_quan_tinh_nhue",
         "ve_binh_nam_cuong",
-        "vuong_quan"
+        "vuong_quan",
+        "bach_duy_nhat"
       ]
     },
     "tieu_nhi_ham_khong_dao": {
@@ -1750,7 +1766,8 @@
         "truong_vinh_minh",
         "van_hao",
         "vo_dai_luc",
-        "xuong_gia_a"
+        "xuong_gia_a",
+        "khong_luong"
       ]
     },
     "truong_nghia_bao_cong": {
@@ -1758,8 +1775,8 @@
       "ref_audio": "audio/truong_nghia_bao_cong.wav",
       "ref_text": "mẹ thảo dân nói rồi mẹ thảo dân nói phải mời bao đại nhân đến nhà đó",
       "language": "Vietnamese",
-      "enabled": true,
-      "speed": 1.0,
+      "enabled": false,
+      "speed": 0.9,
       "parameters": {},
       "voice_profile": {
         "gender": "male",
@@ -1800,7 +1817,6 @@
         "nhan_kien_hi",
         "son_tac_dau_muc_kiet_nhiep",
         "tan_bao",
-        "thang_thong",
         "thien_ngo_su_la_ni_sat",
         "thuong_nhan_gia_vi",
         "tieu_nhi_bach_lac",
@@ -1811,7 +1827,8 @@
         "truong_phan_long",
         "tu_dai_ac_nhan_chi_bao_man",
         "vien_tue",
-        "vuong_vu"
+        "vuong_vu",
+        "tran_lan_hi"
       ]
     }
   }
