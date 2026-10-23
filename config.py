@@ -69,7 +69,8 @@ class Settings:
     cache_dir: Path = _env_path("TTS_CACHE_DIR", BASE_DIR / "cache")
     # kjanh/KhanhTTS-OmniVoice
     # splendor1811/omnivoice-vietnamese
-    model_id: str = os.getenv("TTS_MODEL_ID", "kjanh/KhanhTTS-OmniVoice")
+    # k2-fsa/OmniVoice
+    model_id: str = os.getenv("TTS_MODEL_ID", "k2-fsa/OmniVoice")
     model_revision: str = os.getenv("TTS_MODEL_REVISION", "main")
     device: str = os.getenv("TTS_DEVICE", "auto")
     # OmniVoice 0.2.x documents a native 24 kHz output.

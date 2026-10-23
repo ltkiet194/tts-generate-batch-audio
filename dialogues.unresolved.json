@@ -1,0 +1,955 @@
+{
+  "source": "D:\\Games\\Wandering.Sword.v1.24.32\\game\\Wandering_Sword\\Binaries\\Win64\\ue4ss\\Mods\\DialogueReader\\tts\\hoithoai.csv",
+  "output": "D:\\Games\\Wandering.Sword.v1.24.32\\game\\Wandering_Sword\\Binaries\\Win64\\ue4ss\\Mods\\DialogueReader\\tts\\dialogues.csv",
+  "characters_file": "D:\\Games\\Wandering.Sword.v1.24.32\\game\\Wandering_Sword\\Binaries\\Win64\\ue4ss\\Mods\\DialogueReader\\tts\\characters.json",
+  "records_written": 53692,
+  "unique_speakers": 1111,
+  "resolved_speakers": 927,
+  "unresolved_speakers": 184,
+  "unresolved_lines": 2029,
+  "inserted_tags": {
+    "[confirmation-en]": 1098,
+    "[dissatisfaction-hnn]": 872,
+    "[laughter]": 3364,
+    "[question-ah]": 255,
+    "[question-ei]": 11,
+    "[question-en]": 244,
+    "[question-oh]": 123,
+    "[question-yi]": 8,
+    "[sigh]": 957,
+    "[surprise-ah]": 135,
+    "[surprise-oh]": 56,
+    "[surprise-wa]": 17
+  },
+  "inserted_tag_total": 7140,
+  "unresolved": [
+    {
+      "speaker": "Vô Danh",
+      "suggested_char": "vo_danh",
+      "line_count": 214
+    },
+    {
+      "speaker": "Dẫn truyện",
+      "suggested_char": "dan_truyen",
+      "line_count": 190
+    },
+    {
+      "speaker": "???",
+      "suggested_char": "",
+      "line_count": 168
+    },
+    {
+      "speaker": "Tuân Yểu Yểu",
+      "suggested_char": "tuan_yeu_yeu",
+      "line_count": 114
+    },
+    {
+      "speaker": "Lời dẫn",
+      "suggested_char": "loi_dan",
+      "line_count": 114
+    },
+    {
+      "speaker": "Lý Thanh Trược",
+      "suggested_char": "ly_thanh_truoc",
+      "line_count": 58
+    },
+    {
+      "speaker": "Tiều phu Trương",
+      "suggested_char": "tieu_phu_truong",
+      "line_count": 45
+    },
+    {
+      "speaker": "Tuệ Không",
+      "suggested_char": "tue_khong",
+      "line_count": 38
+    },
+    {
+      "speaker": "Tường thuật",
+      "suggested_char": "tuong_thuat",
+      "line_count": 36
+    },
+    {
+      "speaker": "Người bán đèn hoa",
+      "suggested_char": "nguoi_ban_den_hoa",
+      "line_count": 34
+    },
+    {
+      "speaker": "Mộ Tín",
+      "suggested_char": "mo_tin",
+      "line_count": 31
+    },
+    {
+      "speaker": "Chử Vô Cứu",
+      "suggested_char": "chu_vo_cuu",
+      "line_count": 30
+    },
+    {
+      "speaker": "Chu Cửu Giới",
+      "suggested_char": "chu_cuu_gioi",
+      "line_count": 29
+    },
+    {
+      "speaker": "Trác Ngọc Lâu chưởng sự",
+      "suggested_char": "trac_ngoc_lau_chuong_su",
+      "line_count": 27
+    },
+    {
+      "speaker": "Tầm Yểu Yểu",
+      "suggested_char": "tam_yeu_yeu",
+      "line_count": 25
+    },
+    {
+      "speaker": "Chủ bộ-Trần Tu",
+      "suggested_char": "chu_bo_tran_tu",
+      "line_count": 24
+    },
+    {
+      "speaker": "Tiền Chưởng Quầy",
+      "suggested_char": "tien_chuong_quay",
+      "line_count": 23
+    },
+    {
+      "speaker": "Thím Châu",
+      "suggested_char": "thim_chau",
+      "line_count": 23
+    },
+    {
+      "speaker": "Huệ Đạt",
+      "suggested_char": "hue_dat",
+      "line_count": 23
+    },
+    {
+      "speaker": "Lang y-Tôn Lão",
+      "suggested_char": "lang_y_ton_lao",
+      "line_count": 20
+    },
+    {
+      "speaker": "Mộ Nhân",
+      "suggested_char": "mo_nhan",
+      "line_count": 20
+    },
+    {
+      "speaker": "Quạ",
+      "suggested_char": "qua",
+      "line_count": 19
+    },
+    {
+      "speaker": "Thôn trưởng-Trại A Long",
+      "suggested_char": "thon_truong_trai_a_long",
+      "line_count": 18
+    },
+    {
+      "speaker": "Chuột bạch",
+      "suggested_char": "chuot_bach",
+      "line_count": 16
+    },
+    {
+      "speaker": "Lý Hồ Tử",
+      "suggested_char": "ly_ho_tu",
+      "line_count": 15
+    },
+    {
+      "speaker": "Ỷ Xuân Viện Quy Công",
+      "suggested_char": "y_xuan_vien_quy_cong",
+      "line_count": 14
+    },
+    {
+      "speaker": "Chủ bộ - Trần Tu",
+      "suggested_char": "chu_bo_tran_tu",
+      "line_count": 14
+    },
+    {
+      "speaker": "Dì Dương",
+      "suggested_char": "di_duong",
+      "line_count": 14
+    },
+    {
+      "speaker": "Thôn trưởng thôn Thanh Hà",
+      "suggested_char": "thon_truong_thon_thanh_ha",
+      "line_count": 14
+    },
+    {
+      "speaker": "Người Chăn Heo",
+      "suggested_char": "nguoi_chan_heo",
+      "line_count": 13
+    },
+    {
+      "speaker": "Vượn Già Lưng Kiếm",
+      "suggested_char": "vuon_gia_lung_kiem",
+      "line_count": 13
+    },
+    {
+      "speaker": "Viên Phong",
+      "suggested_char": "vien_phong",
+      "line_count": 13
+    },
+    {
+      "speaker": "Chưởng Quầy-Lý Hách",
+      "suggested_char": "chuong_quay_ly_hach",
+      "line_count": 12
+    },
+    {
+      "speaker": "Trưởng thôn Cam Tuyền",
+      "suggested_char": "truong_thon_cam_tuyen",
+      "line_count": 12
+    },
+    {
+      "speaker": "Lão ăn mày",
+      "suggested_char": "lao_an_may",
+      "line_count": 12
+    },
+    {
+      "speaker": "Lão Câu Cô Độc",
+      "suggested_char": "lao_cau_co_doc",
+      "line_count": 12
+    },
+    {
+      "speaker": "Hỏa Phòng Sư Phụ",
+      "suggested_char": "hoa_phong_su_phu",
+      "line_count": 12
+    },
+    {
+      "speaker": "Bạch chưởng quầy",
+      "suggested_char": "bach_chuong_quay",
+      "line_count": 11
+    },
+    {
+      "speaker": "Tôn Yểu Yểu",
+      "suggested_char": "ton_yeu_yeu",
+      "line_count": 10
+    },
+    {
+      "speaker": "Người qua đường",
+      "suggested_char": "nguoi_qua_duong",
+      "line_count": 10
+    },
+    {
+      "speaker": "Thiếu Lâm Đồng Nhân",
+      "suggested_char": "thieu_lam_dong_nhan",
+      "line_count": 10
+    },
+    {
+      "speaker": "Thiết Tí Viên",
+      "suggested_char": "thiet_ti_vien",
+      "line_count": 10
+    },
+    {
+      "speaker": "Võ quán sư đệ",
+      "suggested_char": "vo_quan_su_de",
+      "line_count": 10
+    },
+    {
+      "speaker": "Võ quán sư huynh",
+      "suggested_char": "vo_quan_su_huynh",
+      "line_count": 10
+    },
+    {
+      "speaker": "Lão câu cá",
+      "suggested_char": "lao_cau_ca",
+      "line_count": 10
+    },
+    {
+      "speaker": "Lính đào ngũ Thiên Long Bang",
+      "suggested_char": "linh_dao_ngu_thien_long_bang",
+      "line_count": 10
+    },
+    {
+      "speaker": "Danh Kiếm Sơn Trang - Lã Khinh Kỳ",
+      "suggested_char": "danh_kiem_son_trang_la_khinh_ky",
+      "line_count": 9
+    },
+    {
+      "speaker": "Trưởng lão Ngũ Tiên Giáo Vu Vu",
+      "suggested_char": "truong_lao_ngu_tien_giao_vu_vu",
+      "line_count": 9
+    },
+    {
+      "speaker": "Hải khấu thủ lĩnh",
+      "suggested_char": "hai_khau_thu_linh",
+      "line_count": 9
+    },
+    {
+      "speaker": "Người bán cá",
+      "suggested_char": "nguoi_ban_ca",
+      "line_count": 9
+    },
+    {
+      "speaker": "Chưởng quỹ Khâu",
+      "suggested_char": "chuong_quy_khau",
+      "line_count": 9
+    },
+    {
+      "speaker": "Dục",
+      "suggested_char": "duc",
+      "line_count": 8
+    },
+    {
+      "speaker": "Lão đạo sĩ què",
+      "suggested_char": "lao_dao_si_que",
+      "line_count": 8
+    },
+    {
+      "speaker": "Thuyền trưởng-Lôi Ngũ Gia",
+      "suggested_char": "thuyen_truong_loi_ngu_gia",
+      "line_count": 7
+    },
+    {
+      "speaker": "Bà Mụ",
+      "suggested_char": "ba_mu",
+      "line_count": 7
+    },
+    {
+      "speaker": "Lã Tiên Nhi",
+      "suggested_char": "la_tien_nhi",
+      "line_count": 7
+    },
+    {
+      "speaker": "？？？",
+      "suggested_char": "",
+      "line_count": 7
+    },
+    {
+      "speaker": "Cao Dục Thiên",
+      "suggested_char": "cao_duc_thien",
+      "line_count": 7
+    },
+    {
+      "speaker": "Dũng sĩ Đại Uyên-Tiêu Cổ Lý",
+      "suggested_char": "dung_si_dai_uyen_tieu_co_ly",
+      "line_count": 7
+    },
+    {
+      "speaker": "Tị Khứu Ái",
+      "suggested_char": "ti_khuu_ai",
+      "line_count": 7
+    },
+    {
+      "speaker": "Xuyên Sơn Mãng",
+      "suggested_char": "xuyen_son_mang",
+      "line_count": 7
+    },
+    {
+      "speaker": "Tiểu Bàn",
+      "suggested_char": "tieu_ban",
+      "line_count": 7
+    },
+    {
+      "speaker": "Binh sĩ Huân Cốc Quan",
+      "suggested_char": "binh_si_huan_coc_quan",
+      "line_count": 7
+    },
+    {
+      "speaker": "Dũng sĩ Du Tiên Đảo",
+      "suggested_char": "dung_si_du_tien_dao",
+      "line_count": 7
+    },
+    {
+      "speaker": "Lão bà",
+      "suggested_char": "lao_ba",
+      "line_count": 6
+    },
+    {
+      "speaker": "Hiệp sĩ giang hồ",
+      "suggested_char": "hiep_si_giang_ho",
+      "line_count": 6
+    },
+    {
+      "speaker": "Lão nhân quét dọn",
+      "suggested_char": "lao_nhan_quet_don",
+      "line_count": 6
+    },
+    {
+      "speaker": "Bàn Sơn Mãng",
+      "suggested_char": "ban_son_mang",
+      "line_count": 6
+    },
+    {
+      "speaker": "Thôn trưởng làng Thanh Hà",
+      "suggested_char": "thon_truong_lang_thanh_ha",
+      "line_count": 6
+    },
+    {
+      "speaker": "Thuyền Phu-Lý Lục Phong",
+      "suggested_char": "thuyen_phu_ly_luc_phong",
+      "line_count": 6
+    },
+    {
+      "speaker": "Trưởng thôn Khổ Thủy",
+      "suggested_char": "truong_thon_kho_thuy",
+      "line_count": 6
+    },
+    {
+      "speaker": "Đệ tử nhà Mộ",
+      "suggested_char": "de_tu_nha_mo",
+      "line_count": 6
+    },
+    {
+      "speaker": "Vương Chiêu Suất",
+      "suggested_char": "vuong_chieu_suat",
+      "line_count": 6
+    },
+    {
+      "speaker": "Thôn trưởng Cam Tuyền Thôn",
+      "suggested_char": "thon_truong_cam_tuyen_thon",
+      "line_count": 6
+    },
+    {
+      "speaker": "Nhãn Kiến Hỷ",
+      "suggested_char": "nhan_kien_hy",
+      "line_count": 5
+    },
+    {
+      "speaker": "Bộ bà bà",
+      "suggested_char": "bo_ba_ba",
+      "line_count": 5
+    },
+    {
+      "speaker": "Lão ăn mày điên",
+      "suggested_char": "lao_an_may_dien",
+      "line_count": 5
+    },
+    {
+      "speaker": "Tự sự",
+      "suggested_char": "tu_su",
+      "line_count": 5
+    },
+    {
+      "speaker": "Thủ lĩnh quân Uyên",
+      "suggested_char": "thu_linh_quan_uyen",
+      "line_count": 5
+    },
+    {
+      "speaker": "Thủ vệ Ngũ Tiên Giáo",
+      "suggested_char": "thu_ve_ngu_tien_giao",
+      "line_count": 5
+    },
+    {
+      "speaker": "Lão Ngư Ông",
+      "suggested_char": "lao_ngu_ong",
+      "line_count": 5
+    },
+    {
+      "speaker": "Lão Trần đầu",
+      "suggested_char": "lao_tran_dau",
+      "line_count": 5
+    },
+    {
+      "speaker": "Đầu bếp",
+      "suggested_char": "dau_bep",
+      "line_count": 5
+    },
+    {
+      "speaker": "Bà lão",
+      "suggested_char": "ba_lao",
+      "line_count": 4
+    },
+    {
+      "speaker": "Bách tính Miêu Cương",
+      "suggested_char": "bach_tinh_mieu_cuong",
+      "line_count": 4
+    },
+    {
+      "speaker": "Say Rượu",
+      "suggested_char": "say_ruou",
+      "line_count": 4
+    },
+    {
+      "speaker": "Bổ Khoái Trương",
+      "suggested_char": "bo_khoai_truong",
+      "line_count": 4
+    },
+    {
+      "speaker": "Bổ Khoái Lý",
+      "suggested_char": "bo_khoai_ly",
+      "line_count": 4
+    },
+    {
+      "speaker": "Nha hoàn",
+      "suggested_char": "nha_hoan",
+      "line_count": 4
+    },
+    {
+      "speaker": "Đệ tử Tam Thanh Điện",
+      "suggested_char": "de_tu_tam_thanh_dien",
+      "line_count": 4
+    },
+    {
+      "speaker": "Trưởng thôn Lôi Gia",
+      "suggested_char": "truong_thon_loi_gia",
+      "line_count": 4
+    },
+    {
+      "speaker": "Nam Cương Vệ Binh",
+      "suggested_char": "nam_cuong_ve_binh",
+      "line_count": 4
+    },
+    {
+      "speaker": "Thương Nhân Hương Liệu",
+      "suggested_char": "thuong_nhan_huong_lieu",
+      "line_count": 4
+    },
+    {
+      "speaker": "Gã Hầu",
+      "suggested_char": "ga_hau",
+      "line_count": 4
+    },
+    {
+      "speaker": "Đệ tử Thần Ưng Môn",
+      "suggested_char": "de_tu_than_ung_mon",
+      "line_count": 4
+    },
+    {
+      "speaker": "Lão gia tử Trần",
+      "suggested_char": "lao_gia_tu_tran",
+      "line_count": 4
+    },
+    {
+      "speaker": "Võ Đang đệ tử",
+      "suggested_char": "vo_dang_de_tu",
+      "line_count": 4
+    },
+    {
+      "speaker": "Sơn tặc đầu mục-Đạt Giả",
+      "suggested_char": "son_tac_dau_muc_dat_gia",
+      "line_count": 3
+    },
+    {
+      "speaker": "Lão ảo",
+      "suggested_char": "lao_ao",
+      "line_count": 3
+    },
+    {
+      "speaker": "Xích Luyện Xà",
+      "suggested_char": "xich_luyen_xa",
+      "line_count": 3
+    },
+    {
+      "speaker": "Thập Tam Ưng chi Thương Ưng",
+      "suggested_char": "thap_tam_ung_chi_thuong_ung",
+      "line_count": 3
+    },
+    {
+      "speaker": "Gã dữ tợn",
+      "suggested_char": "ga_du_ton",
+      "line_count": 3
+    },
+    {
+      "speaker": "Mẹ Thiết Đản",
+      "suggested_char": "me_thiet_dan",
+      "line_count": 3
+    },
+    {
+      "speaker": "Thuyền phu - Lôi Trực",
+      "suggested_char": "thuyen_phu_loi_truc",
+      "line_count": 3
+    },
+    {
+      "speaker": "Hassan",
+      "suggested_char": "hassan",
+      "line_count": 3
+    },
+    {
+      "speaker": "Thương Nhân Vải",
+      "suggested_char": "thuong_nhan_vai",
+      "line_count": 3
+    },
+    {
+      "speaker": "Hán tử hung ác",
+      "suggested_char": "han_tu_hung_ac",
+      "line_count": 3
+    },
+    {
+      "speaker": "Thôn trưởng - Trại A Long",
+      "suggested_char": "thon_truong_trai_a_long",
+      "line_count": 3
+    },
+    {
+      "speaker": "Quản gia Trình",
+      "suggested_char": "quan_gia_trinh",
+      "line_count": 3
+    },
+    {
+      "speaker": "Dị Chủng Kim Hạt",
+      "suggested_char": "di_chung_kim_hat",
+      "line_count": 2
+    },
+    {
+      "speaker": "Chủ nhân Thanh Vân",
+      "suggested_char": "chu_nhan_thanh_van",
+      "line_count": 2
+    },
+    {
+      "speaker": "Viên Hầu Thủ Lĩnh",
+      "suggested_char": "vien_hau_thu_linh",
+      "line_count": 2
+    },
+    {
+      "speaker": "Â Dương Hành",
+      "suggested_char": "a_duong_hanh",
+      "line_count": 2
+    },
+    {
+      "speaker": "Linh Thù Sứ - Quân Cửu Âm",
+      "suggested_char": "linh_thu_su_quan_cuu_am",
+      "line_count": 2
+    },
+    {
+      "speaker": "Heo Rừng",
+      "suggested_char": "heo_rung",
+      "line_count": 2
+    },
+    {
+      "speaker": "Chu Bạch",
+      "suggested_char": "chu_bach",
+      "line_count": 2
+    },
+    {
+      "speaker": "Đã lâu không cùng đại ca phá trận rồi,",
+      "suggested_char": "da_lau_khong_cung_dai_ca_pha_tran_roi",
+      "line_count": 2
+    },
+    {
+      "speaker": "…Tin tức quả nhiên không sai…",
+      "suggested_char": "tin_tuc_qua_nhien_khong_sai",
+      "line_count": 2
+    },
+    {
+      "speaker": "Ngũ Tiên Giáo trưởng lão Vu Cổ",
+      "suggested_char": "ngu_tien_giao_truong_lao_vu_co",
+      "line_count": 2
+    },
+    {
+      "speaker": "Điếu Tẩu",
+      "suggested_char": "dieu_tau",
+      "line_count": 2
+    },
+    {
+      "speaker": "Thuyền Phu-Uông Khúc",
+      "suggested_char": "thuyen_phu_uong_khuc",
+      "line_count": 2
+    },
+    {
+      "speaker": "Thương nhân dược liệu",
+      "suggested_char": "thuong_nhan_duoc_lieu",
+      "line_count": 2
+    },
+    {
+      "speaker": "Trưởng thôn-Trại A Long",
+      "suggested_char": "truong_thon_trai_a_long",
+      "line_count": 2
+    },
+    {
+      "speaker": "Lưu chưởng quầy",
+      "suggested_char": "luu_chuong_quay",
+      "line_count": 2
+    },
+    {
+      "speaker": "Thiên Ngô Sứ-La Ny Sát",
+      "suggested_char": "thien_ngo_su_la_ny_sat",
+      "line_count": 2
+    },
+    {
+      "speaker": "Bát Lạng Kim",
+      "suggested_char": "bat_lang_kim",
+      "line_count": 2
+    },
+    {
+      "speaker": "Tam Thanh Điện đệ tử",
+      "suggested_char": "tam_thanh_dien_de_tu",
+      "line_count": 2
+    },
+    {
+      "speaker": "Ngũ Tiên giáo thủ vệ",
+      "suggested_char": "ngu_tien_giao_thu_ve",
+      "line_count": 2
+    },
+    {
+      "speaker": "Thủ lĩnh sơn tặc-Kiệt Nhiếp",
+      "suggested_char": "thu_linh_son_tac_kiet_nhiep",
+      "line_count": 1
+    },
+    {
+      "speaker": "Lão Ảo",
+      "suggested_char": "lao_ao",
+      "line_count": 1
+    },
+    {
+      "speaker": "Phải biết rằng, y thuật của Liễu Ma Y",
+      "suggested_char": "phai_biet_rang_y_thuat_cua_lieu_ma_y",
+      "line_count": 1
+    },
+    {
+      "speaker": "Tổ tiên của Lữ Phụng Hiền",
+      "suggested_char": "to_tien_cua_lu_phung_hien",
+      "line_count": 1
+    },
+    {
+      "speaker": "Xích Hạt",
+      "suggested_char": "xich_hat",
+      "line_count": 1
+    },
+    {
+      "speaker": "Viên Hầu",
+      "suggested_char": "vien_hau",
+      "line_count": 1
+    },
+    {
+      "speaker": "Tên hái hoa tặc",
+      "suggested_char": "ten_hai_hoa_tac",
+      "line_count": 1
+    },
+    {
+      "speaker": "Lão đạo què",
+      "suggested_char": "lao_dao_que",
+      "line_count": 1
+    },
+    {
+      "speaker": "Trưởng thôn Thanh Hà Thôn",
+      "suggested_char": "truong_thon_thanh_ha_thon",
+      "line_count": 1
+    },
+    {
+      "speaker": "Chủ Tiệm Tạp Hóa",
+      "suggested_char": "chu_tiem_tap_hoa",
+      "line_count": 1
+    },
+    {
+      "speaker": "Mấy năm nay Vương thị",
+      "suggested_char": "may_nam_nay_vuong_thi",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thuyền trưởng - Lôi Ngũ Gia",
+      "suggested_char": "thuyen_truong_loi_ngu_gia",
+      "line_count": 1
+    },
+    {
+      "speaker": "Triệu Võ",
+      "suggested_char": "trieu_vo",
+      "line_count": 1
+    },
+    {
+      "speaker": "Quy công Ỷ Xuân Viện",
+      "suggested_char": "quy_cong_y_xuan_vien",
+      "line_count": 1
+    },
+    {
+      "speaker": "Quy Nô",
+      "suggested_char": "quy_no",
+      "line_count": 1
+    },
+    {
+      "speaker": "Binh Sĩ Thành Thiên Thủy",
+      "suggested_char": "binh_si_thanh_thien_thuy",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thiết vệ Lục Phiến Môn",
+      "suggested_char": "thiet_ve_luc_phien_mon",
+      "line_count": 1
+    },
+    {
+      "speaker": "Trưởng thôn làng Cam Tuyền",
+      "suggested_char": "truong_thon_lang_cam_tuyen",
+      "line_count": 1
+    },
+    {
+      "speaker": "Người chèo thuyền",
+      "suggested_char": "nguoi_cheo_thuyen",
+      "line_count": 1
+    },
+    {
+      "speaker": "Hộ vệ nhà họ Lữ",
+      "suggested_char": "ho_ve_nha_ho_lu",
+      "line_count": 1
+    },
+    {
+      "speaker": "Hám Hích Đức",
+      "suggested_char": "ham_hich_duc",
+      "line_count": 1
+    },
+    {
+      "speaker": "Tiêu Đại Gia",
+      "suggested_char": "tieu_dai_gia",
+      "line_count": 1
+    },
+    {
+      "speaker": "Dê",
+      "suggested_char": "de",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thầy lang du phương",
+      "suggested_char": "thay_lang_du_phuong",
+      "line_count": 1
+    },
+    {
+      "speaker": "Khách thần bí",
+      "suggested_char": "khach_than_bi",
+      "line_count": 1
+    },
+    {
+      "speaker": "Dương thị",
+      "suggested_char": "duong_thi",
+      "line_count": 1
+    },
+    {
+      "speaker": "Trí tuệ",
+      "suggested_char": "tri_tue",
+      "line_count": 1
+    },
+    {
+      "speaker": "Lòng nhân",
+      "suggested_char": "long_nhan",
+      "line_count": 1
+    },
+    {
+      "speaker": "Niềm tin",
+      "suggested_char": "niem_tin",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thiên Thanh Đài Trản này là bảo vật ta đã cất giữ nhiều năm,",
+      "suggested_char": "thien_thanh_dai_tran_nay_la_bao_vat_ta_da_cat_giu_nhieu_nam",
+      "line_count": 1
+    },
+    {
+      "speaker": "Haizz,",
+      "suggested_char": "haizz",
+      "line_count": 1
+    },
+    {
+      "speaker": "Hậu nhân của Mục gia…",
+      "suggested_char": "hau_nhan_cua_muc_gia",
+      "line_count": 1
+    },
+    {
+      "speaker": "（Ngọc Môn Mộ gia…",
+      "suggested_char": "ngoc_mon_mo_gia",
+      "line_count": 1
+    },
+    {
+      "speaker": "Trưởng thôn Long",
+      "suggested_char": "truong_thon_long",
+      "line_count": 1
+    },
+    {
+      "speaker": "Hách Nhiệm",
+      "suggested_char": "hach_nhiem",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thuyền công-Lôi Trực",
+      "suggested_char": "thuyen_cong_loi_truc",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thuyền phu Bến Thiên Lăng",
+      "suggested_char": "thuyen_phu_ben_thien_lang",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thuyền phu Đầm U Vân",
+      "suggested_char": "thuyen_phu_dam_u_van",
+      "line_count": 1
+    },
+    {
+      "speaker": "Trà Bác Sĩ",
+      "suggested_char": "tra_bac_si",
+      "line_count": 1
+    },
+    {
+      "speaker": "Danh Kiếm Thuyền Phu",
+      "suggested_char": "danh_kiem_thuyen_phu",
+      "line_count": 1
+    },
+    {
+      "speaker": "Cơ Quan Mộc Nhân",
+      "suggested_char": "co_quan_moc_nhan",
+      "line_count": 1
+    },
+    {
+      "speaker": "Sau khi Châu Tự",
+      "suggested_char": "sau_khi_chau_tu",
+      "line_count": 1
+    },
+    {
+      "speaker": "Dũng sĩ Đại Uyên - Tiêu Cổ Lý",
+      "suggested_char": "dung_si_dai_uyen_tieu_co_ly",
+      "line_count": 1
+    },
+    {
+      "speaker": "Dương Thị",
+      "suggested_char": "duong_thi",
+      "line_count": 1
+    },
+    {
+      "speaker": "Âm Dương Tư Tử Sĩ",
+      "suggested_char": "am_duong_tu_tu_si",
+      "line_count": 1
+    },
+    {
+      "speaker": "Đệ tử Thanh Mộc Phảng",
+      "suggested_char": "de_tu_thanh_moc_phang",
+      "line_count": 1
+    },
+    {
+      "speaker": "Đồng Nhân Thiếu Lâm",
+      "suggested_char": "dong_nhan_thieu_lam",
+      "line_count": 1
+    },
+    {
+      "speaker": "Góa phụ Lý",
+      "suggested_char": "goa_phu_ly",
+      "line_count": 1
+    },
+    {
+      "speaker": "Tôn Gan Dạ",
+      "suggested_char": "ton_gan_da",
+      "line_count": 1
+    },
+    {
+      "speaker": "Chu Mắt To",
+      "suggested_char": "chu_mat_to",
+      "line_count": 1
+    },
+    {
+      "speaker": "Tú tài Trương",
+      "suggested_char": "tu_tai_truong",
+      "line_count": 1
+    },
+    {
+      "speaker": "Lý Râu Bạc",
+      "suggested_char": "ly_rau_bac",
+      "line_count": 1
+    },
+    {
+      "speaker": "Hạng Cầu Long",
+      "suggested_char": "hang_cau_long",
+      "line_count": 1
+    },
+    {
+      "speaker": "Danh Kiếm đệ tử",
+      "suggested_char": "danh_kiem_de_tu",
+      "line_count": 1
+    },
+    {
+      "speaker": "Đại Uyên dũng sĩ - Tiêu Cổ Lợi",
+      "suggested_char": "dai_uyen_dung_si_tieu_co_loi",
+      "line_count": 1
+    },
+    {
+      "speaker": "Thôn trưởng Long",
+      "suggested_char": "thon_truong_long",
+      "line_count": 1
+    }
+  ],
+  "empty_text_records": [
+    50878,
+    50879,
+    50880,
+    50881,
+    50882
+  ],
+  "malformed_records": []
+}
